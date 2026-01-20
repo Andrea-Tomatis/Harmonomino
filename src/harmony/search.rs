@@ -1,3 +1,3 @@
 pub struct HarmonySearch {
-    pub weights: [f64; 19],
+    pub weights: [f64; 16],
 }

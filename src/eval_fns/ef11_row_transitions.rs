@@ -1,10 +1,10 @@
 use crate::eval_fns::EvalFn;
-use crate::game::GameState;
+use crate::game::Board;
 
 pub struct RowTransitions;
 
 impl EvalFn for RowTransitions {
-    fn eval(&self, state: &GameState) -> f64 {
+    fn eval(&self, board: &Board) -> u8 {
         todo!()
     }
 }
