@@ -1,9 +1,9 @@
 use crate::eval_fns::EvalFn;
 use crate::game::GameState;
 
-pub struct PileHeight;
+pub struct WeightedBlocks;
 
-impl EvalFn for PileHeight {
+impl EvalFn for WeightedBlocks {
     fn eval(&self, state: &GameState) -> f64 {
         todo!()
     }

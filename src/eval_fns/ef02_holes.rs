@@ -1,9 +1,9 @@
 use crate::eval_fns::EvalFn;
 use crate::game::GameState;
 
-pub struct PileHeight;
+pub struct Holes;
 
-impl EvalFn for PileHeight {
+impl EvalFn for Holes {
     fn eval(&self, state: &GameState) -> f64 {
         todo!()
     }
