@@ -5,9 +5,9 @@ pub struct PileHeight;
 
 impl EvalFn for PileHeight {
     fn eval(&self, board: &Board) -> u8 {
-        for (i, row) in board.cells.iter().rev().enumerate() {
+        for (i, row) in board.rows_top_down() {
             if row.iter().any(|&cell| cell) {
-                return 19 - i as u8;
+                return i as u8;
             }
         }
         20
@@ -19,21 +19,19 @@ mod tests {
     use super::*;
     use crate::game::Board;
 
+    const EF: &dyn EvalFn = &PileHeight;
+
     #[test]
     fn test_pile_height_empty_board() {
-        let board = Board {
-            cells: [[false; 10]; 20],
-        };
-        let ef = PileHeight;
-        assert_eq!(ef.eval(&board), 20);
+        let board = Board::new();
+        assert_eq!(EF.eval(&board), 20);
     }
 
     #[test]
     fn test_pile_height_partial_board() {
-        let mut cells = [[false; 10]; 20];
-        cells[18][0] = true; // Row 18 has a block
-        let board = Board { cells };
-        let ef = PileHeight;
-        assert_eq!(ef.eval(&board), 3);
+        let mut board = Board::new();
+        assert_eq!(Board::HEIGHT - 2, 18);
+        board[18][0] = true; // Row 18 (1 row below top)
+        assert_eq!(EF.eval(&board), 1); // 1 row from the top
     }
 }
