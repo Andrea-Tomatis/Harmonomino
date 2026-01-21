@@ -21,5 +21,6 @@ pub mod ef19_hole_depth;
 use crate::game::Board;
 
 pub trait EvalFn {
+    /// Evaluates the board and returns a score (0-255).
     fn eval(&self, board: &Board) -> u8;
 }

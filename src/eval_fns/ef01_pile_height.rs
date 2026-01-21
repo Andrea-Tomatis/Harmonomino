@@ -4,6 +4,7 @@ use crate::game::Board;
 pub struct PileHeight;
 
 impl EvalFn for PileHeight {
+    #[allow(clippy::cast_possible_truncation)]
     fn eval(&self, board: &Board) -> u8 {
         for (i, row) in board.rows_top_down() {
             if row.iter().any(|&cell| cell) {
