@@ -2,12 +2,12 @@ use std::io;
 use std::time::Duration;
 
 use ratatui::{
-    crossterm::event::{self, Event, KeyCode, KeyEventKind},
     DefaultTerminal,
+    crossterm::event::{self, Event, KeyCode, KeyEventKind},
 };
 
 use harmonomino::game::GamePhase;
-use harmonomino::tui::{draw, App};
+use harmonomino::tui::{App, draw};
 
 fn main() -> io::Result<()> {
     let mut terminal = ratatui::init();

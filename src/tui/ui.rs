@@ -68,11 +68,9 @@ pub fn draw(frame: &mut Frame, app: &App) {
     let area = frame.area();
 
     // Main layout: game area (fill) | info panel (right)
-    let [game_area, info_area] = Layout::horizontal([
-        Constraint::Min(24),
-        Constraint::Length(INFO_PANEL_WIDTH),
-    ])
-    .split(area)[..]
+    let [game_area, info_area] =
+        Layout::horizontal([Constraint::Min(24), Constraint::Length(INFO_PANEL_WIDTH)]).split(area)
+            [..]
     else {
         return;
     };
