@@ -20,19 +20,6 @@ impl EvalFn for Holes {
     }
 }
 
-impl Board {
-    /// Checks if there is at least one filled cell above the given position.
-    #[must_use]
-    pub fn has_filled_above(&self, row: usize, col: usize) -> bool {
-        for r in (row + 1)..Self::HEIGHT {
-            if self[r][col] {
-                return true;
-            }
-        }
-        false
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

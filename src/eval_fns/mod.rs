@@ -1,3 +1,5 @@
+mod helpers;
+
 pub mod ef01_pile_height;
 pub mod ef02_holes;
 pub mod ef03_connected_holes;
