@@ -1,4 +1,5 @@
 pub mod board;
+mod rotations;
 pub mod state;
 pub mod tetromino;
 
