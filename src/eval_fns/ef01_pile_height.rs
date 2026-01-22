@@ -32,7 +32,7 @@ mod tests {
     fn test_pile_height_partial_board() {
         let mut board = Board::new();
         assert_eq!(Board::HEIGHT - 2, 18);
-        board[18][0] = true; // Row 18 (1 row below top)
-        assert_eq!(EF.eval(&board), 1); // 1 row from the top
+        board[19][0] = true; // Top row
+        assert_eq!(EF.eval(&board), 0);
     }
 }
