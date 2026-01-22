@@ -1,3 +1,4 @@
+use std::fmt::{self, Display, Write};
 use std::ops::{Index, IndexMut};
 
 use super::tetromino::FallingPiece;
@@ -218,4 +219,60 @@ impl Default for Board {
     fn default() -> Self {
         Self::new()
     }
+}
+
+impl Display for Board {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let cells = self
+            .cells
+            .iter()
+            .enumerate()
+            .flat_map(|(row, cols)| {
+                cols.iter()
+                    .enumerate()
+                    .filter(|&(_, occupied)| *occupied)
+                    .map(move |(col, _)| (col as i8, row as i8))
+            })
+            .collect::<Vec<_>>();
+
+        visualize_cells(f, &cells, Self::WIDTH, Self::HEIGHT)
+    }
+}
+
+/// Renders a set of cells as a text grid.
+///
+/// Cells are rendered as `█`, empty spaces as `.`.
+/// Grid is displayed top-to-bottom (highest row first).
+///
+/// If `width` and `height` are 0, bounds are auto-calculated from the cells.
+pub fn visualize_cells(
+    f: &mut fmt::Formatter<'_>,
+    cells: &[(i8, i8)],
+    width: usize,
+    height: usize,
+) -> fmt::Result {
+    let (min_col, max_col, min_row, max_row) = if width == 0 || height == 0 {
+        // Auto-calculate bounds from cells
+        let min_col = cells.iter().map(|(c, _)| *c).min().unwrap_or(0);
+        let max_col = cells.iter().map(|(c, _)| *c).max().unwrap_or(0);
+        let min_row = cells.iter().map(|(_, r)| *r).min().unwrap_or(0);
+        let max_row = cells.iter().map(|(_, r)| *r).max().unwrap_or(0);
+        (min_col, max_col, min_row, max_row)
+    } else {
+        (0, (width - 1) as i8, 0, (height - 1) as i8)
+    };
+
+    for row in (min_row..=max_row).rev() {
+        for col in min_col..=max_col {
+            if cells.contains(&(col, row)) {
+                f.write_char('█')?;
+            } else {
+                f.write_char('.')?;
+            }
+        }
+        if row > min_row {
+            f.write_char('\n')?;
+        }
+    }
+    Ok(())
 }

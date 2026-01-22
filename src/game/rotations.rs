@@ -125,3 +125,248 @@ impl Tetromino {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::super::Rotation;
+    use super::Tetromino;
+    use std::collections::HashSet;
+
+    /// Helper to convert cells to a set for order-independent comparison.
+    fn cell_set(cells: [(i8, i8); 4]) -> HashSet<(i8, i8)> {
+        cells.into_iter().collect()
+    }
+
+    // =========================================================================
+    // I PIECE
+    // =========================================================================
+
+    #[test]
+    fn i_rotation_0_horizontal() {
+        let cells = Tetromino::I.cells(Rotation(0));
+        assert_eq!(cell_set(cells), cell_set([(0, 1), (1, 1), (2, 1), (3, 1)]));
+    }
+
+    #[test]
+    fn i_rotation_1_vertical() {
+        let cells = Tetromino::I.cells(Rotation(1));
+        assert_eq!(cell_set(cells), cell_set([(2, 0), (2, 1), (2, 2), (2, 3)]));
+    }
+
+    #[test]
+    fn i_rotation_2_horizontal() {
+        let cells = Tetromino::I.cells(Rotation(2));
+        assert_eq!(cell_set(cells), cell_set([(0, 2), (1, 2), (2, 2), (3, 2)]));
+    }
+
+    #[test]
+    fn i_rotation_3_vertical() {
+        let cells = Tetromino::I.cells(Rotation(3));
+        assert_eq!(cell_set(cells), cell_set([(1, 0), (1, 1), (1, 2), (1, 3)]));
+    }
+
+    // =========================================================================
+    // O PIECE
+    // =========================================================================
+
+    #[test]
+    fn o_all_rotations_identical() {
+        let expected = cell_set([(0, 0), (1, 0), (0, 1), (1, 1)]);
+        for rot in 0..4 {
+            let cells = Tetromino::O.cells(Rotation(rot));
+            assert_eq!(cell_set(cells), expected, "O rotation {rot} differs");
+        }
+    }
+
+    // =========================================================================
+    // T PIECE
+    // =========================================================================
+
+    #[test]
+    fn t_rotation_0_pointing_up() {
+        let cells = Tetromino::T.cells(Rotation(0));
+        assert_eq!(cell_set(cells), cell_set([(0, 1), (1, 1), (2, 1), (1, 2)]));
+    }
+
+    #[test]
+    fn t_rotation_1_pointing_right() {
+        let cells = Tetromino::T.cells(Rotation(1));
+        assert_eq!(cell_set(cells), cell_set([(0, 0), (0, 1), (0, 2), (1, 1)]));
+    }
+
+    #[test]
+    fn t_rotation_2_pointing_down() {
+        let cells = Tetromino::T.cells(Rotation(2));
+        assert_eq!(cell_set(cells), cell_set([(0, 1), (1, 1), (2, 1), (1, 0)]));
+    }
+
+    #[test]
+    fn t_rotation_3_pointing_left() {
+        let cells = Tetromino::T.cells(Rotation(3));
+        assert_eq!(cell_set(cells), cell_set([(1, 0), (1, 1), (1, 2), (0, 1)]));
+    }
+
+    // =========================================================================
+    // S PIECE
+    // =========================================================================
+
+    #[test]
+    fn s_rotation_0_horizontal() {
+        let cells = Tetromino::S.cells(Rotation(0));
+        assert_eq!(cell_set(cells), cell_set([(0, 1), (1, 1), (1, 2), (2, 2)]));
+    }
+
+    #[test]
+    fn s_rotation_1_vertical() {
+        let cells = Tetromino::S.cells(Rotation(1));
+        assert_eq!(cell_set(cells), cell_set([(0, 1), (0, 2), (1, 0), (1, 1)]));
+    }
+
+    #[test]
+    fn s_rotations_symmetric() {
+        assert_eq!(
+            cell_set(Tetromino::S.cells(Rotation(0))),
+            cell_set(Tetromino::S.cells(Rotation(2)))
+        );
+        assert_eq!(
+            cell_set(Tetromino::S.cells(Rotation(1))),
+            cell_set(Tetromino::S.cells(Rotation(3)))
+        );
+    }
+
+    // =========================================================================
+    // Z PIECE
+    // =========================================================================
+
+    #[test]
+    fn z_rotation_0_horizontal() {
+        let cells = Tetromino::Z.cells(Rotation(0));
+        assert_eq!(cell_set(cells), cell_set([(0, 2), (1, 2), (1, 1), (2, 1)]));
+    }
+
+    #[test]
+    fn z_rotation_1_vertical() {
+        let cells = Tetromino::Z.cells(Rotation(1));
+        assert_eq!(cell_set(cells), cell_set([(0, 0), (0, 1), (1, 1), (1, 2)]));
+    }
+
+    #[test]
+    fn z_rotations_symmetric() {
+        assert_eq!(
+            cell_set(Tetromino::Z.cells(Rotation(0))),
+            cell_set(Tetromino::Z.cells(Rotation(2)))
+        );
+        assert_eq!(
+            cell_set(Tetromino::Z.cells(Rotation(1))),
+            cell_set(Tetromino::Z.cells(Rotation(3)))
+        );
+    }
+
+    // =========================================================================
+    // J PIECE
+    // =========================================================================
+
+    #[test]
+    fn j_rotation_0() {
+        let cells = Tetromino::J.cells(Rotation(0));
+        assert_eq!(cell_set(cells), cell_set([(0, 1), (1, 1), (2, 1), (0, 2)]));
+    }
+
+    #[test]
+    fn j_rotation_1() {
+        let cells = Tetromino::J.cells(Rotation(1));
+        assert_eq!(cell_set(cells), cell_set([(0, 0), (0, 1), (0, 2), (1, 2)]));
+    }
+
+    #[test]
+    fn j_rotation_2() {
+        let cells = Tetromino::J.cells(Rotation(2));
+        assert_eq!(cell_set(cells), cell_set([(0, 1), (1, 1), (2, 1), (2, 0)]));
+    }
+
+    #[test]
+    fn j_rotation_3() {
+        let cells = Tetromino::J.cells(Rotation(3));
+        assert_eq!(cell_set(cells), cell_set([(0, 0), (1, 0), (1, 1), (1, 2)]));
+    }
+
+    // =========================================================================
+    // L PIECE
+    // =========================================================================
+
+    #[test]
+    fn l_rotation_0() {
+        let cells = Tetromino::L.cells(Rotation(0));
+        assert_eq!(cell_set(cells), cell_set([(0, 1), (1, 1), (2, 1), (2, 2)]));
+    }
+
+    #[test]
+    fn l_rotation_1() {
+        let cells = Tetromino::L.cells(Rotation(1));
+        assert_eq!(cell_set(cells), cell_set([(0, 0), (0, 1), (0, 2), (1, 0)]));
+    }
+
+    #[test]
+    fn l_rotation_2() {
+        let cells = Tetromino::L.cells(Rotation(2));
+        assert_eq!(cell_set(cells), cell_set([(0, 1), (1, 1), (2, 1), (0, 0)]));
+    }
+
+    #[test]
+    fn l_rotation_3() {
+        let cells = Tetromino::L.cells(Rotation(3));
+        assert_eq!(cell_set(cells), cell_set([(1, 0), (1, 1), (1, 2), (0, 2)]));
+    }
+
+    // =========================================================================
+    // GENERAL PROPERTIES
+    // =========================================================================
+
+    #[test]
+    fn all_pieces_have_4_unique_cells() {
+        for piece in Tetromino::ALL {
+            for rot in 0..4 {
+                let cells = piece.cells(Rotation(rot));
+                let unique: HashSet<_> = cells.into_iter().collect();
+                assert_eq!(
+                    unique.len(),
+                    4,
+                    "{piece:?} rotation {rot} has {} unique cells",
+                    unique.len()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn rotation_4_equals_rotation_0() {
+        for piece in Tetromino::ALL {
+            let r0 = piece.cells(Rotation(0));
+            let r4 = piece.cells(Rotation(4));
+            assert_eq!(cell_set(r0), cell_set(r4), "{piece:?} rotation 4 != 0");
+        }
+    }
+
+    #[test]
+    fn all_cells_are_connected() {
+        for piece in Tetromino::ALL {
+            for rot in 0..4 {
+                let cells = piece.cells(Rotation(rot));
+                let set: HashSet<_> = cells.into_iter().collect();
+
+                for &(col, row) in &set {
+                    let neighbors = [
+                        (col - 1, row),
+                        (col + 1, row),
+                        (col, row - 1),
+                        (col, row + 1),
+                    ];
+                    assert!(
+                        neighbors.iter().any(|n| set.contains(n)),
+                        "{piece:?} rotation {rot}: cell ({col}, {row}) is disconnected"
+                    );
+                }
+            }
+        }
+    }
+}
