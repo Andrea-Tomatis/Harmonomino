@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+        with:
+          components: rustfmt
+
+      - name: Format
+        run: cargo fmt
+
+      - name: Commit formatting changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: cargo fmt"
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Clippy
+        run: cargo clippy
+        continue-on-error: true
+
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Check
+        run: cargo check --verbose
+
+      - name: Run tests
+        run: cargo test --verbose
