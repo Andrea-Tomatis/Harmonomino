@@ -70,6 +70,16 @@ impl Board {
         self.cells.iter().rev().enumerate()
     }
 
+    /// Returns an iterator over all cell positions (col, row).
+    pub fn all_positions() -> impl Iterator<Item = (usize, usize)> {
+        (0..Self::WIDTH).flat_map(|col| (0..Self::HEIGHT).map(move |row| (col, row)))
+    }
+
+    /// Returns an iterator with all cells flattened (occupied: true).
+    pub fn all_cells(&self) -> impl Iterator<Item = &bool> {
+        self.cells.iter().flat_map(|row| row.iter())
+    }
+
     /// Checks if a cell position is within board bounds.
     #[must_use]
     #[allow(clippy::cast_possible_truncation)]
