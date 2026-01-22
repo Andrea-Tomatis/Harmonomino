@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 rand = "0.8"
+ratatui = "0.30"
 
 [lints.clippy]
 pedantic = { level = "deny", priority = -1 }
