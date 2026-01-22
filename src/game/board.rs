@@ -223,6 +223,7 @@ impl Default for Board {
 
 impl Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        #[allow(clippy::cast_possible_truncation)]
         let cells = self
             .cells
             .iter()
@@ -245,6 +246,10 @@ impl Display for Board {
 /// Grid is displayed top-to-bottom (highest row first).
 ///
 /// If `width` and `height` are 0, bounds are auto-calculated from the cells.
+///
+/// # Errors
+///
+/// Returns a formatting error if writing to the formatter fails.
 pub fn visualize_cells(
     f: &mut fmt::Formatter<'_>,
     cells: &[(i8, i8)],
@@ -259,6 +264,7 @@ pub fn visualize_cells(
         let max_row = cells.iter().map(|(_, r)| *r).max().unwrap_or(0);
         (min_col, max_col, min_row, max_row)
     } else {
+        #[allow(clippy::cast_possible_truncation)]
         (0, (width - 1) as i8, 0, (height - 1) as i8)
     };
 

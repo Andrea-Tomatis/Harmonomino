@@ -63,7 +63,7 @@ fn handle_key(app: &mut App, code: KeyCode) {
         KeyCode::Char(' ') => app.hard_drop(),
 
         // Rotation
-        KeyCode::Up | KeyCode::Char('x') => app.rotate_cw(),
+        KeyCode::Up | KeyCode::Char('x' | 'w') => app.rotate_cw(),
         KeyCode::Char('z') => app.rotate_ccw(),
 
         _ => {}

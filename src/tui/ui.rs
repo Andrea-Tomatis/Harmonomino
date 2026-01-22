@@ -54,7 +54,7 @@ fn calculate_cell_size(area: Rect) -> (u16, u16) {
     } else {
         // Width is the limiting factor
         cell_width = max_cell_width;
-        cell_height = (cell_width + 1) / 2; // Round up for better appearance
+        cell_height = cell_width.div_ceil(2); // Round up for better appearance
     }
 
     (
@@ -121,15 +121,10 @@ fn draw_board(frame: &mut Frame, app: &App, area: Rect) {
             let mut spans: Vec<Span> = Vec::with_capacity(Board::WIDTH);
 
             for col in 0..Board::WIDTH {
-                let col_i8 = col as i8;
-                let row_i8 = board_row as i8;
-
                 let (cell_type, color) = get_cell_appearance(
                     &app.game.board,
                     col,
                     board_row,
-                    col_i8,
-                    row_i8,
                     current_cells.as_ref(),
                     ghost_cells.as_ref(),
                 );
@@ -181,26 +176,25 @@ fn center_rect(area: Rect, width: u16, height: u16) -> Rect {
 }
 
 /// Determines what to display for a cell.
+#[allow(clippy::cast_possible_truncation)]
 fn get_cell_appearance(
     board: &Board,
     col: usize,
     board_row: usize,
-    col_i8: i8,
-    row_i8: i8,
     current_cells: Option<&([(i8, i8); 4], Tetromino)>,
     ghost_cells: Option<&[(i8, i8); 4]>,
 ) -> (CellType, Option<Color>) {
     if board[board_row][col] {
         (CellType::Filled, Some(Color::Gray))
     } else if let Some((cells, tetromino)) = current_cells {
-        if cells.contains(&(col_i8, row_i8)) {
+        if cells.contains(&(col as i8, board_row as i8)) {
             (CellType::Filled, Some(tetromino_color(*tetromino)))
-        } else if ghost_cells.is_some_and(|g| g.contains(&(col_i8, row_i8))) {
+        } else if ghost_cells.is_some_and(|g| g.contains(&(col as i8, board_row as i8))) {
             (CellType::Ghost, Some(Color::DarkGray))
         } else {
             (CellType::Empty, None)
         }
-    } else if ghost_cells.is_some_and(|g| g.contains(&(col_i8, row_i8))) {
+    } else if ghost_cells.is_some_and(|g| g.contains(&(col as i8, board_row as i8))) {
         (CellType::Ghost, Some(Color::DarkGray))
     } else {
         (CellType::Empty, None)
@@ -256,6 +250,7 @@ fn draw_next_piece(frame: &mut Frame, app: &App, area: Rect) {
     let piece = FallingPiece::spawn(app.game.next);
     let cells = piece.cells();
 
+    // NOTE: duplicate logic with board.rs/visualize_cells; could refactor?
     let min_col = cells.iter().map(|(c, _)| *c).min().unwrap_or(0);
     let max_col = cells.iter().map(|(c, _)| *c).max().unwrap_or(0);
     let min_row = cells.iter().map(|(_, r)| *r).min().unwrap_or(0);
@@ -337,8 +332,12 @@ fn draw_controls(frame: &mut Frame, area: Rect) {
             Span::raw("Drop"),
         ]),
         Line::from(vec![
-            Span::styled("↑ Z ", Style::default().fg(Color::Cyan)),
-            Span::raw("Rotate"),
+            Span::styled("↑ X", Style::default().fg(Color::Cyan)),
+            Span::raw("Rotate CW"),
+        ]),
+        Line::from(vec![
+            Span::styled("↑ Z", Style::default().fg(Color::Cyan)),
+            Span::raw("Rotate CCW"),
         ]),
         Line::from(""),
         Line::from(vec![
