@@ -9,13 +9,27 @@ impl EvalFn for Holes {
         let mut holes = 0;
         for (row_idx, row) in board.rows_bottom_up() {
             for (col, &occupied) in row.iter().enumerate() {
-                // A hole is an empty cell with at one filled cell directly above it
-                if !occupied && row_idx < Board::HEIGHT - 1 && board[row_idx + 1][col] {
+                // A hole is an empty cell with at one filled cell somewhere above it
+                if !occupied && row_idx < Board::HEIGHT - 1 && board.has_filled_above(row_idx, col)
+                {
                     holes += 1;
                 }
             }
         }
         holes
+    }
+}
+
+impl Board {
+    /// Checks if there is at least one filled cell above the given position.
+    #[must_use]
+    pub fn has_filled_above(&self, row: usize, col: usize) -> bool {
+        for r in (row + 1)..Self::HEIGHT {
+            if self[r][col] {
+                return true;
+            }
+        }
+        false
     }
 }
 
@@ -45,9 +59,7 @@ mod tests {
         let mut board = Board::new();
         // Create multiple holes
         board[1][0] = true;
-        board[2][0] = true;
-        board[3][0] = true;
         board[5][0] = true;
-        assert_eq!(EF.eval(&board), 2);
+        assert_eq!(EF.eval(&board), 4);
     }
 }
