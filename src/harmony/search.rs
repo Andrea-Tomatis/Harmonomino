@@ -32,8 +32,7 @@ impl HarmonySearch {
         }
     }
 
-    pub fn optimize(&mut self, sim_length: usize,bounds: (f64, f64)) -> ([f64; 16], f64)
-    {
+    pub fn optimize(&mut self, sim_length: usize, bounds: (f64, f64)) -> ([f64; 16], f64) {
         let mut rng = rand::thread_rng();
         let (min_bound, max_bound) = bounds;
 

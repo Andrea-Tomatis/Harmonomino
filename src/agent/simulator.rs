@@ -75,7 +75,7 @@ impl Simulator {
 
             i += 1;
         }
-        
+
         return game.rows_cleared;
     }
 }
