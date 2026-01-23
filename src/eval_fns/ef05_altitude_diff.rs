@@ -3,9 +3,9 @@ use crate::game::Board;
 
 /// The difference between the highest occupied cell and the lowest gap
 /// directly reachable from the top (i.e., max column height - min column height).
-pub struct Eval;
+pub struct AltitudeDiff;
 
-impl EvalFn for Eval {
+impl EvalFn for AltitudeDiff {
     #[allow(clippy::cast_possible_truncation)]
     fn eval(&self, board: &Board) -> u8 {
         let mut max_height = 0usize;
@@ -26,7 +26,7 @@ mod tests {
     use super::*;
     use crate::game::Board;
 
-    const EF: &dyn EvalFn = &Eval;
+    const EF: &dyn EvalFn = &AltitudeDiff;
 
     #[test]
     fn test_altitude_diff_empty_board() {

@@ -4,9 +4,9 @@ use crate::game::Board;
 /// Counts vertically connected gaps as one hole.
 /// A connected hole is a run of empty cells in a column that has at least one
 /// filled cell above it. Multiple vertically adjacent empty cells count as one.
-pub struct Eval;
+pub struct ConnectedHoles;
 
-impl EvalFn for Eval {
+impl EvalFn for ConnectedHoles {
     fn eval(&self, board: &Board) -> u8 {
         let mut total = 0;
 
@@ -48,7 +48,7 @@ mod tests {
     use super::*;
     use crate::game::Board;
 
-    const EF: &dyn EvalFn = &Eval;
+    const EF: &dyn EvalFn = &ConnectedHoles;
 
     #[test]
     fn test_no_holes_empty_board() {

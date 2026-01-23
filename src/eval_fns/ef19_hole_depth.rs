@@ -3,9 +3,9 @@ use crate::game::Board;
 
 /// The sum of filled cells above each hole.
 /// For each hole, count how many filled cells are above it in its column.
-pub struct Eval;
+pub struct HoleDepth;
 
-impl EvalFn for Eval {
+impl EvalFn for HoleDepth {
     #[allow(clippy::cast_possible_truncation)]
     fn eval(&self, board: &Board) -> u8 {
         let mut total: u8 = 0;
@@ -33,7 +33,7 @@ mod tests {
     use super::*;
     use crate::game::Board;
 
-    const EF: &dyn EvalFn = &Eval;
+    const EF: &dyn EvalFn = &HoleDepth;
 
     #[test]
     fn test_no_holes() {

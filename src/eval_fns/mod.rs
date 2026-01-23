@@ -31,22 +31,22 @@ pub trait EvalFn {
 /// We use Box<dyn EvalFn> to store different types in one list.
 pub fn get_all_evaluators() -> Vec<Box<dyn EvalFn>> {
     vec![
-        Box::new(ef01_pile_height::Eval),
-        Box::new(ef02_holes::Eval),
-        Box::new(ef03_connected_holes::Eval),
-        Box::new(ef05_altitude_diff::Eval),
-        Box::new(ef06_max_well_depth::Eval),
-        Box::new(ef07_sum_of_wells::Eval),
-        Box::new(ef09_blocks::Eval),
-        Box::new(ef10_weighted_blocks::Eval),
-        Box::new(ef11_row_transitions::Eval),
-        Box::new(ef12_col_transitions::Eval),
-        Box::new(ef13_highest_hole::Eval),
-        Box::new(ef14_blocks_above_highest::Eval),
-        Box::new(ef15_potential_rows::Eval),
-        Box::new(ef16_smoothness::Eval),
-        Box::new(ef18_row_holes::Eval),
-        Box::new(ef19_hole_depth::Eval),
+        Box::new(ef01_pile_height::PileHeight),
+        Box::new(ef02_holes::Holes),
+        Box::new(ef03_connected_holes::ConnectedHoles),
+        Box::new(ef05_altitude_diff::AltitudeDiff),
+        Box::new(ef06_max_well_depth::MaxWellDepth),
+        Box::new(ef07_sum_of_wells::SumOfWells),
+        Box::new(ef09_blocks::Blocks),
+        Box::new(ef10_weighted_blocks::WeightedBlocks),
+        Box::new(ef11_row_transitions::RowTransitions),
+        Box::new(ef12_col_transitions::ColTransitions),
+        Box::new(ef13_highest_hole::HighestHole),
+        Box::new(ef14_blocks_above_highest::BlocksAboveHighest),
+        Box::new(ef15_potential_rows::PotentialRows),
+        Box::new(ef16_smoothness::Smoothness),
+        Box::new(ef18_row_holes::RowHoles),
+        Box::new(ef19_hole_depth::HoleDepth),
     ]
 }
 

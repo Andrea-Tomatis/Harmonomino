@@ -3,9 +3,9 @@ use crate::game::Board;
 
 /// The sum of all horizontal transitions between occupied and unoccupied cells.
 /// Walls count as occupied, so an empty cell at the edge counts as a transition.
-pub struct Eval;
+pub struct RowTransitions;
 
-impl EvalFn for Eval {
+impl EvalFn for RowTransitions {
     fn eval(&self, board: &Board) -> u8 {
         let mut transitions = 0;
 
@@ -37,7 +37,7 @@ mod tests {
     use super::*;
     use crate::game::Board;
 
-    const EF: &dyn EvalFn = &Eval;
+    const EF: &dyn EvalFn = &RowTransitions;
 
     #[test]
     fn test_empty_board() {

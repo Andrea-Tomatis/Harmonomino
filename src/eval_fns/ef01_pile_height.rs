@@ -3,9 +3,9 @@ use crate::game::Board;
 
 /// The row of the topmost block in the board (1-indexed height from bottom).
 /// Returns 0 for an empty board.
-pub struct Eval;
+pub struct PileHeight;
 
-impl EvalFn for Eval {
+impl EvalFn for PileHeight {
     #[allow(clippy::cast_possible_truncation)]
     fn eval(&self, board: &Board) -> u8 {
         // Find the highest row with any occupied cell
@@ -23,7 +23,7 @@ mod tests {
     use super::*;
     use crate::game::Board;
 
-    const EF: &dyn EvalFn = &Eval;
+    const EF: &dyn EvalFn = &PileHeight;
 
     #[test]
     fn test_pile_height_empty_board() {

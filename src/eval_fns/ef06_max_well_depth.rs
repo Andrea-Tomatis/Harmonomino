@@ -1,9 +1,9 @@
 use crate::eval_fns::EvalFn;
 use crate::game::Board;
 
-pub struct Eval;
+pub struct MaxWellDepth;
 
-impl EvalFn for Eval {
+impl EvalFn for MaxWellDepth {
     fn eval(&self, board: &Board) -> u8 {
         (0..Board::WIDTH)
             .map(|col| calculate_well_depth(board, col))

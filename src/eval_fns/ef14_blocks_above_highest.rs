@@ -3,9 +3,9 @@ use crate::game::Board;
 
 /// The number of filled cells above the highest hole.
 /// Returns 0 if there are no holes.
-pub struct Eval;
+pub struct BlocksAboveHighest;
 
-impl EvalFn for Eval {
+impl EvalFn for BlocksAboveHighest {
     fn eval(&self, board: &Board) -> u8 {
         let Some(hole_row) = board.highest_hole_row() else {
             return 0;
@@ -28,7 +28,7 @@ mod tests {
     use super::*;
     use crate::game::Board;
 
-    const EF: &dyn EvalFn = &Eval;
+    const EF: &dyn EvalFn = &BlocksAboveHighest;
 
     #[test]
     fn test_no_holes() {
