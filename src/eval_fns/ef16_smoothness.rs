@@ -3,9 +3,9 @@ use crate::game::Board;
 
 /// The sum of all absolute differences of adjacent column heights,
 /// plus the difference between the first and last column.
-pub struct Smoothness;
+pub struct Eval;
 
-impl EvalFn for Smoothness {
+impl EvalFn for Eval {
     fn eval(&self, board: &Board) -> u8 {
         #[allow(clippy::cast_possible_truncation)]
         let heights: [u8; Board::WIDTH] = std::array::from_fn(|col| board.column_height(col) as u8);
@@ -30,7 +30,7 @@ mod tests {
     use super::*;
     use crate::game::Board;
 
-    const EF: &dyn EvalFn = &Smoothness;
+    const EF: &dyn EvalFn = &Eval;
 
     #[test]
     fn test_empty_board() {

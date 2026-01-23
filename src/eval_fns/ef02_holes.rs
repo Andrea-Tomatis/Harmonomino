@@ -2,9 +2,9 @@ use crate::eval_fns::EvalFn;
 use crate::game::Board;
 
 /// The number of all gaps with at least one occupied cell above them.
-pub struct Holes;
+pub struct Eval;
 
-impl EvalFn for Holes {
+impl EvalFn for Eval {
     fn eval(&self, board: &Board) -> u8 {
         let mut holes = 0;
         for (row_idx, row) in board.rows_bottom_up() {
@@ -25,7 +25,7 @@ mod tests {
     use super::*;
     use crate::game::Board;
 
-    const EF: &dyn EvalFn = &Holes;
+    const EF: &dyn EvalFn = &Eval;
 
     #[test]
     fn test_holes_no_holes() {

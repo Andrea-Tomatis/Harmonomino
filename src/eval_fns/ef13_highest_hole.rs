@@ -4,9 +4,9 @@ use crate::game::Board;
 /// The height (1-indexed row) of the topmost hole on the game board.
 /// A hole is an empty cell with at least one filled cell above it.
 /// Returns 0 if there are no holes.
-pub struct HighestHole;
+pub struct Eval;
 
-impl EvalFn for HighestHole {
+impl EvalFn for Eval {
     #[allow(clippy::cast_possible_truncation)]
     fn eval(&self, board: &Board) -> u8 {
         board.highest_hole_row().map_or(0, |row| (row + 1) as u8)
@@ -18,7 +18,7 @@ mod tests {
     use super::*;
     use crate::game::Board;
 
-    const EF: &dyn EvalFn = &HighestHole;
+    const EF: &dyn EvalFn = &Eval;
 
     #[test]
     fn test_no_holes() {

@@ -3,9 +3,9 @@ use crate::game::Board;
 
 /// The number of rows located above the Highest Hole that have more than 8 filled cells (I think).
 /// These are rows that are close to being clearable but blocked by a hole below.
-pub struct PotentialRows;
+pub struct Eval;
 
-impl EvalFn for PotentialRows {
+impl EvalFn for Eval {
     fn eval(&self, board: &Board) -> u8 {
         let Some(hole_row) = board.highest_hole_row() else {
             return 0;
@@ -26,7 +26,7 @@ mod tests {
     use super::*;
     use crate::game::Board;
 
-    const EF: &dyn EvalFn = &PotentialRows;
+    const EF: &dyn EvalFn = &Eval;
 
     #[test]
     fn test_no_holes() {

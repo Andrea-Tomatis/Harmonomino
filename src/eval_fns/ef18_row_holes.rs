@@ -3,9 +3,9 @@ use crate::game::Board;
 
 /// The number of rows that contain at least one hole.
 /// A hole is an empty cell with at least one filled cell above it.
-pub struct RowHoles;
+pub struct Eval;
 
-impl EvalFn for RowHoles {
+impl EvalFn for Eval {
     fn eval(&self, board: &Board) -> u8 {
         let mut count = 0;
 
@@ -27,7 +27,7 @@ mod tests {
     use super::*;
     use crate::game::Board;
 
-    const EF: &dyn EvalFn = &RowHoles;
+    const EF: &dyn EvalFn = &Eval;
 
     #[test]
     fn test_no_holes() {

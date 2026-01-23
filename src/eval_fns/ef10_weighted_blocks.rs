@@ -1,9 +1,9 @@
 use crate::eval_fns::EvalFn;
 use crate::game::Board;
 
-pub struct WeightedBlocks;
+pub struct Eval;
 
-impl EvalFn for WeightedBlocks {
+impl EvalFn for Eval {
     #[allow(clippy::cast_possible_truncation)]
     fn eval(&self, board: &Board) -> u8 {
         board
@@ -20,7 +20,7 @@ mod tests {
     use super::*;
     use crate::game::Board;
 
-    const EF: &dyn EvalFn = &WeightedBlocks;
+    const EF: &dyn EvalFn = &Eval;
 
     #[test]
     fn test_blocks_empty_board() {
