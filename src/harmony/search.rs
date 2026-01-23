@@ -77,7 +77,8 @@ impl HarmonySearch {
             let new_fitness = objective_func(&new_harmony);
 
             // Maximization Logic: Find min (worst) to replace
-            let (worst_idx, &worst_fitness) = self.fitness_mem
+            let (worst_idx, &worst_fitness) = self
+                .fitness_mem
                 .iter()
                 .enumerate()
                 .min_by(|a, b| a.1.partial_cmp(b.1).unwrap())
@@ -90,7 +91,8 @@ impl HarmonySearch {
         }
 
         // Maximization Logic: Return max (best)
-        let (best_idx, &best_fitness) = self.fitness_mem
+        let (best_idx, &best_fitness) = self
+            .fitness_mem
             .iter()
             .enumerate()
             .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())

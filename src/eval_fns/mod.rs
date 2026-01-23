@@ -27,7 +27,6 @@ pub trait EvalFn {
     fn eval(&self, board: &Board) -> u8;
 }
 
-
 /// Returns a list of all 16 evaluators in the correct order.
 /// We use Box<dyn EvalFn> to store different types in one list.
 pub fn get_all_evaluators() -> Vec<Box<dyn EvalFn>> {
@@ -59,7 +58,7 @@ pub fn calculate_weighted_score(board: &Board, weights: &[f64; 16]) -> f64 {
     for (i, evaluator) in evaluators.iter().enumerate() {
         //Run the specific heuristic
         let raw_score = evaluator.eval(board); // returns u8 (0-255)
-        
+
         // Multiply by the gene weight
         // We cast u8 to f64 for the math
         total_score += (raw_score as f64) * weights[i];
