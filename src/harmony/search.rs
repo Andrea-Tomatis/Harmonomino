@@ -1,5 +1,7 @@
 use rand::Rng;
 
+use crate::agent::simulator::Simulator;
+
 #[derive(Debug)]
 pub struct HarmonySearch {
     pub hm_mem_size: usize,
@@ -30,9 +32,7 @@ impl HarmonySearch {
         }
     }
 
-    pub fn optimize<F>(&mut self, objective_func: F, bounds: (f64, f64)) -> ([f64; 16], f64)
-    where
-        F: Fn(&[f64; 16]) -> f64,
+    pub fn optimize(&mut self, sim_length: usize,bounds: (f64, f64)) -> ([f64; 16], f64)
     {
         let mut rng = rand::thread_rng();
         let (min_bound, max_bound) = bounds;
@@ -47,7 +47,9 @@ impl HarmonySearch {
                 *val = rng.gen_range(min_bound..=max_bound);
             }
             self.harm_mem.push(harmony);
-            self.fitness_mem.push(objective_func(&harmony));
+
+            let sim = Simulator::new(harmony, sim_length);
+            self.fitness_mem.push(sim.simulate_game() as f64);
         }
 
         // Optimization Loop
@@ -74,7 +76,8 @@ impl HarmonySearch {
                 }
             }
 
-            let new_fitness = objective_func(&new_harmony);
+            let sim: Simulator = Simulator::new(new_harmony, sim_length);
+            let new_fitness: f64 = sim.simulate_game() as f64;
 
             // Maximization Logic: Find min (worst) to replace
             let (worst_idx, &worst_fitness) = self

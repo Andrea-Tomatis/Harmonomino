@@ -1,13 +1,8 @@
-use harmonomino::agent::simulator::Simulator;
 use harmonomino::harmony::HarmonySearch;
 
 fn main() {
     // Example Objective: Maximize an inverted sphere function (Higher is better)
     // Theoretical Max is 0.0 at [0,0,...]
-    let objective = |vars: &[f64; 16]| -> f64 {
-        let sum_sq: f64 = vars.iter().map(|x| x * x).sum();
-        -sum_sq
-    };
 
     let mut solver = HarmonySearch::new(
         5,    // Memory Size
@@ -19,7 +14,7 @@ fn main() {
 
     println!("Starting Optimization (Maximization)...");
 
-    let (best_vars, best_score) = solver.optimize(objective, (-10.0, 10.0));
+    let (best_vars, best_score) = solver.optimize(1000,(-1.0, 1.0));
 
     println!("Best Fitness Found: {:.5}", best_score);
     println!(

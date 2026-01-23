@@ -16,7 +16,7 @@ impl Simulator {
         }
     }
 
-    pub fn simulate_game(self) {
+    pub fn simulate_game(self) -> u32 {
         let mut i: usize = 0;
         let mut game = GameState::new();
 
@@ -75,5 +75,7 @@ impl Simulator {
 
             i += 1;
         }
+        
+        return game.rows_cleared;
     }
 }
