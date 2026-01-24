@@ -106,9 +106,7 @@ impl Board {
 
         // 1. Check for collisions (Original Logic)
         // The piece must fit entirely into empty space.
-        let no_collision = cells
-            .iter()
-            .all(|&(col, row)| !self.is_occupied(col, row));
+        let no_collision = cells.iter().all(|&(col, row)| !self.is_occupied(col, row));
 
         if !no_collision {
             return false;
@@ -117,12 +115,10 @@ impl Board {
         // 2. Check for support (New Logic)
         // To be a valid "placement" (resting spot), at least one cell of the piece
         // must be sitting on top of something solid (the floor or another block).
-        let is_grounded = cells
-            .iter()
-            .any(|&(col, row)| {
-                // Check if we are on the floor (row 0) OR if the cell below is occupied
-                row == 0 || self.is_occupied(col, row - 1)
-            });
+        let is_grounded = cells.iter().any(|&(col, row)| {
+            // Check if we are on the floor (row 0) OR if the cell below is occupied
+            row == 0 || self.is_occupied(col, row - 1)
+        });
 
         is_grounded
     }

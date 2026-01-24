@@ -38,9 +38,7 @@ impl Simulator {
                 //try if it fits in any place between the first free line and the last avaible space
 
                 for k in 0..Board::HEIGHT {
-
                     for h in 0..Board::WIDTH {
-
                         rotated_piece.row = k as i8;
                         rotated_piece.col = h as i8;
                         rotated_piece.rotation = crate::game::Rotation(j as u8);
