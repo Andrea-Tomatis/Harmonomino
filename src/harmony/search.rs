@@ -33,7 +33,7 @@ impl HarmonySearch {
     }
 
     pub fn optimize(&mut self, sim_length: usize, bounds: (f64, f64)) -> ([f64; 16], f64) {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let (min_bound, max_bound) = bounds;
 
         self.harm_mem.clear();
@@ -43,7 +43,7 @@ impl HarmonySearch {
         for _ in 0..self.hm_mem_size {
             let mut harmony = [0.0; 16];
             for val in harmony.iter_mut() {
-                *val = rng.gen_range(min_bound..=max_bound);
+                *val = rng.random_range(min_bound..=max_bound);
             }
             self.harm_mem.push(harmony);
 
@@ -59,19 +59,19 @@ impl HarmonySearch {
                 // FIXED: Used `r#gen` to escape the keyword
                 if rng.r#gen::<f64>() < self.accept_rate {
                     // Memory Consideration
-                    let random_mem_idx = rng.gen_range(0..self.hm_mem_size);
+                    let random_mem_idx = rng.random_range(0..self.hm_mem_size);
                     let mut value = self.harm_mem[random_mem_idx][i];
 
                     // Pitch Adjustment
                     // FIXED: Used `r#gen` here as well
                     if rng.r#gen::<f64>() < self.pitch_adj_rate {
-                        let adjustment = rng.gen_range(-1.0..=1.0) * self.band_width;
+                        let adjustment = rng.random_range(-1.0..=1.0) * self.band_width;
                         value += adjustment;
                     }
                     new_harmony[i] = value;
                 } else {
                     // Random Selection
-                    new_harmony[i] = rng.gen_range(min_bound..=max_bound);
+                    new_harmony[i] = rng.random_range(min_bound..=max_bound);
                 }
             }
 

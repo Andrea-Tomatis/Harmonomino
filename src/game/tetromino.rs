@@ -111,7 +111,7 @@ impl Tetromino {
     #[must_use]
     pub fn random() -> Self {
         let mut rng = rand::thread_rng();
-        Self::ALL[rng.gen_range(0..Self::ALL.len())]
+        Self::ALL[rng.random_range(0..Self::ALL.len())]
     }
 
     /// Returns the spawn position (col, row) for this piece.

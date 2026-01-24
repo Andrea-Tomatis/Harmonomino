@@ -2,9 +2,10 @@
 name = "harmonomino"
 version = "0.1.0"
 edition = "2024"
+default-run = "harmonomino"
 
 [dependencies]
-rand = "0.8"
+rand = "0.9"
 ratatui = "0.30"
 
 [lints.clippy]
