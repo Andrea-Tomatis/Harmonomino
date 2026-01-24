@@ -46,7 +46,8 @@ impl Simulator {
                         if game.board.can_place(&rotated_piece) {
                             let possible_board = game.board.with_piece(&rotated_piece);
 
-                            let score: f64 = calculate_weighted_score(&possible_board, &self.weights);
+                            let score: f64 =
+                                calculate_weighted_score(&possible_board, &self.weights);
                             if score > max_score {
                                 next_state = GameState::from_board(possible_board);
                                 max_score = score;
