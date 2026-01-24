@@ -29,6 +29,7 @@ pub trait EvalFn {
 
 /// Returns a list of all 16 evaluators in the correct order.
 /// We use Box<dyn EvalFn> to store different types in one list.
+#[must_use]
 pub fn get_all_evaluators() -> Vec<Box<dyn EvalFn>> {
     vec![
         Box::new(ef01_pile_height::PileHeight),
@@ -51,6 +52,7 @@ pub fn get_all_evaluators() -> Vec<Box<dyn EvalFn>> {
 }
 
 /// Calculates the weighted sum of all heuristics.
+#[must_use]
 pub fn calculate_weighted_score(board: &Board, weights: &[f64; 16]) -> f64 {
     let evaluators = get_all_evaluators();
     let mut total_score = 0.0;
@@ -61,7 +63,7 @@ pub fn calculate_weighted_score(board: &Board, weights: &[f64; 16]) -> f64 {
 
         // Multiply by the gene weight
         // We cast u8 to f64 for the math
-        total_score += (raw_score as f64) * weights[i];
+        total_score += f64::from(raw_score) * weights[i];
     }
 
     total_score

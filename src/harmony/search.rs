@@ -14,6 +14,12 @@ pub struct HarmonySearch {
 }
 
 impl HarmonySearch {
+    /// Creates a new [`HarmonySearch`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if `hm_mem_size` is zero or if `accept_rate` or `pitch_adj_rate` are not in the range [0, 1].
+    #[must_use]
     pub fn new(
         hm_mem_size: usize,
         max_iter: usize,
@@ -21,7 +27,16 @@ impl HarmonySearch {
         pitch_adj_rate: f64,
         band_width: f64,
     ) -> Self {
-        HarmonySearch {
+        assert!(hm_mem_size > 0, "Harmony memory size must be > 0");
+        assert!(
+            (0.0..=1.0).contains(&accept_rate),
+            "Accept rate must be in [0, 1]"
+        );
+        assert!(
+            (0.0..=1.0).contains(&pitch_adj_rate),
+            "Pitch adjustment rate must be in [0, 1]"
+        );
+        Self {
             hm_mem_size,
             max_iter,
             accept_rate,
@@ -32,6 +47,11 @@ impl HarmonySearch {
         }
     }
 
+    /// TODO: Short docstring.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `fitness_mem` is empty at the end of optimization (happens only when `hm_mem_size` is 0).
     pub fn optimize(&mut self, sim_length: usize, bounds: (f64, f64)) -> ([f64; 16], f64) {
         let mut rng = rand::rng();
         let (min_bound, max_bound) = bounds;
@@ -42,49 +62,47 @@ impl HarmonySearch {
         // Initialization
         for _ in 0..self.hm_mem_size {
             let mut harmony = [0.0; 16];
-            for val in harmony.iter_mut() {
+            for val in &mut harmony {
                 *val = rng.random_range(min_bound..=max_bound);
             }
             self.harm_mem.push(harmony);
 
             let sim = Simulator::new(harmony, sim_length);
-            self.fitness_mem.push(sim.simulate_game() as f64);
+            self.fitness_mem.push(f64::from(sim.simulate_game()));
         }
 
         // Optimization Loop
         for _ in 0..self.max_iter {
             let mut new_harmony = [0.0; 16];
 
-            for i in 0..16 {
-                // FIXED: Used `r#gen` to escape the keyword
-                if rng.r#gen::<f64>() < self.accept_rate {
+            for (i, note) in new_harmony.iter_mut().enumerate() {
+                if rng.random::<f64>() < self.accept_rate {
                     // Memory Consideration
                     let random_mem_idx = rng.random_range(0..self.hm_mem_size);
                     let mut value = self.harm_mem[random_mem_idx][i];
 
                     // Pitch Adjustment
-                    // FIXED: Used `r#gen` here as well
-                    if rng.r#gen::<f64>() < self.pitch_adj_rate {
+                    if rng.random::<f64>() < self.pitch_adj_rate {
                         let adjustment = rng.random_range(-1.0..=1.0) * self.band_width;
                         value += adjustment;
                     }
-                    new_harmony[i] = value;
+                    *note = value;
                 } else {
                     // Random Selection
-                    new_harmony[i] = rng.random_range(min_bound..=max_bound);
+                    *note = rng.random_range(min_bound..=max_bound);
                 }
             }
 
             let sim: Simulator = Simulator::new(new_harmony, sim_length);
-            let new_fitness: f64 = sim.simulate_game() as f64;
+            let new_fitness: f64 = f64::from(sim.simulate_game());
 
             // Maximization Logic: Find min (worst) to replace
             let (worst_idx, &worst_fitness) = self
                 .fitness_mem
                 .iter()
                 .enumerate()
-                .min_by(|a, b| a.1.partial_cmp(b.1).unwrap())
-                .unwrap();
+                .min_by(|a, b| a.1.total_cmp(b.1)) // NOTE: changed to total_cmp to avaid panic on NaN
+                .expect("Fitness memory should not be empty");
 
             if new_fitness > worst_fitness {
                 self.harm_mem[worst_idx] = new_harmony;
@@ -97,8 +115,8 @@ impl HarmonySearch {
             .fitness_mem
             .iter()
             .enumerate()
-            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
-            .unwrap();
+            .max_by(|a, b| a.1.total_cmp(b.1)) // NOTE: changed to total_cmp to avoid panic on NaN
+            .expect("Fitness memory should not be empty");
 
         (self.harm_mem[best_idx], best_fitness)
     }

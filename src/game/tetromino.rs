@@ -110,7 +110,7 @@ impl Tetromino {
     /// Returns a random tetromino.
     #[must_use]
     pub fn random() -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         Self::ALL[rng.random_range(0..Self::ALL.len())]
     }
 

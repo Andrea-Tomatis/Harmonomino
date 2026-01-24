@@ -16,7 +16,7 @@ fn main() {
 
     let (best_vars, best_score) = solver.optimize(1000, (-1.0, 1.0));
 
-    println!("Best Fitness Found: {:.5}", best_score);
+    println!("Best Fitness Found: {best_score:.5}");
     println!(
         "Best Vector (first 3): [{:.3}, {:.3}, {:.3}, ...]",
         best_vars[0], best_vars[1], best_vars[2]
