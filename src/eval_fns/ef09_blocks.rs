@@ -5,8 +5,8 @@ pub struct Blocks;
 
 impl EvalFn for Blocks {
     #[allow(clippy::cast_possible_truncation)]
-    fn eval(&self, board: &Board) -> u8 {
-        board.all_cells().filter(|&&cell| cell).count() as u8
+    fn eval(&self, board: &Board) -> u16 {
+        board.all_cells().filter(|&&cell| cell).count() as u16
     }
 }
 

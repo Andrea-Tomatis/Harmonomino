@@ -113,8 +113,6 @@ impl Board {
         if !no_collision {
             return false;
         }
-
-        // 2. Check for support (New Logic)
         // To be a valid "placement" (resting spot), at least one cell of the piece
         // must be sitting on top of something solid (the floor or another block).
         let is_grounded = cells

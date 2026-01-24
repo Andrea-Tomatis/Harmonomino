@@ -8,8 +8,8 @@ pub struct HighestHole;
 
 impl EvalFn for HighestHole {
     #[allow(clippy::cast_possible_truncation)]
-    fn eval(&self, board: &Board) -> u8 {
-        board.highest_hole_row().map_or(0, |row| (row + 1) as u8)
+    fn eval(&self, board: &Board) -> u16 {
+        board.highest_hole_row().map_or(0, |row| (row + 1) as u16)
     }
 }
 

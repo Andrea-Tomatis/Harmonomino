@@ -6,7 +6,7 @@ use crate::game::Board;
 pub struct RowHoles;
 
 impl EvalFn for RowHoles {
-    fn eval(&self, board: &Board) -> u8 {
+    fn eval(&self, board: &Board) -> u16 {
         let mut count = 0;
 
         for row in 0..Board::HEIGHT - 1 {

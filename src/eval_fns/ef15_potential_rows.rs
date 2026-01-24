@@ -6,7 +6,7 @@ use crate::game::Board;
 pub struct PotentialRows;
 
 impl EvalFn for PotentialRows {
-    fn eval(&self, board: &Board) -> u8 {
+    fn eval(&self, board: &Board) -> u16 {
         let Some(hole_row) = board.highest_hole_row() else {
             return 0;
         };

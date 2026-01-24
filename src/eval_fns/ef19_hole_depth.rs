@@ -7,11 +7,11 @@ pub struct HoleDepth;
 
 impl EvalFn for HoleDepth {
     #[allow(clippy::cast_possible_truncation)]
-    fn eval(&self, board: &Board) -> u8 {
-        let mut total: u8 = 0;
+    fn eval(&self, board: &Board) -> u16 {
+        let mut total: u16 = 0;
 
         for col in 0..Board::WIDTH {
-            let mut filled_above: u8 = 0;
+            let mut filled_above: u16 = 0;
 
             // Scan from top to bottom
             for row in (0..Board::HEIGHT).rev() {

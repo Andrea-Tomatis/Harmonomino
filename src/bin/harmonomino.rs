@@ -6,7 +6,7 @@ fn main() {
 
     let mut solver = HarmonySearch::new(
         5,    // Memory Size
-        100,  // Iterations
+        1,  // Iterations
         0.95, // Accept Rate
         0.99, // Pitch Adjust Rate
         0.01, // Bandwidth

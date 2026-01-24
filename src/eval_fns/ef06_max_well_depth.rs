@@ -4,7 +4,7 @@ use crate::game::Board;
 pub struct MaxWellDepth;
 
 impl EvalFn for MaxWellDepth {
-    fn eval(&self, board: &Board) -> u8 {
+    fn eval(&self, board: &Board) -> u16 {
         (0..Board::WIDTH)
             .map(|col| calculate_well_depth(board, col))
             .max()
@@ -13,7 +13,7 @@ impl EvalFn for MaxWellDepth {
 }
 
 #[must_use]
-pub fn calculate_well_depth(board: &Board, col: usize) -> u8 {
+pub fn calculate_well_depth(board: &Board, col: usize) -> u16 {
     let mut depth = 0;
     for row in 0..Board::HEIGHT {
         if board[row][col] || board.has_filled_above(row, col) {

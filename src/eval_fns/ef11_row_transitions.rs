@@ -6,7 +6,7 @@ use crate::game::Board;
 pub struct RowTransitions;
 
 impl EvalFn for RowTransitions {
-    fn eval(&self, board: &Board) -> u8 {
+    fn eval(&self, board: &Board) -> u16 {
         let mut transitions = 0;
 
         for row in 0..Board::HEIGHT {

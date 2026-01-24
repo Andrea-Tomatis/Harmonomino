@@ -7,7 +7,7 @@ pub struct AltitudeDiff;
 
 impl EvalFn for AltitudeDiff {
     #[allow(clippy::cast_possible_truncation)]
-    fn eval(&self, board: &Board) -> u8 {
+    fn eval(&self, board: &Board) -> u16 {
         let mut max_height = 0usize;
         let mut min_height = Board::HEIGHT;
 
@@ -17,7 +17,7 @@ impl EvalFn for AltitudeDiff {
             min_height = min_height.min(height);
         }
 
-        (max_height - min_height) as u8
+        (max_height - min_height) as u16
     }
 }
 

@@ -6,7 +6,7 @@ use crate::game::Board;
 pub struct BlocksAboveHighest;
 
 impl EvalFn for BlocksAboveHighest {
-    fn eval(&self, board: &Board) -> u8 {
+    fn eval(&self, board: &Board) -> u16 {
         let Some(hole_row) = board.highest_hole_row() else {
             return 0;
         };

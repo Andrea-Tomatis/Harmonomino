@@ -24,7 +24,7 @@ use crate::game::Board;
 
 pub trait EvalFn {
     /// Evaluates the board and returns a score (0-255).
-    fn eval(&self, board: &Board) -> u8;
+    fn eval(&self, board: &Board) -> u16;
 }
 
 /// Returns a list of all 16 evaluators in the correct order.

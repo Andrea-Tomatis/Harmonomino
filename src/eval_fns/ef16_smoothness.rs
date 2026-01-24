@@ -6,9 +6,9 @@ use crate::game::Board;
 pub struct Smoothness;
 
 impl EvalFn for Smoothness {
-    fn eval(&self, board: &Board) -> u8 {
+    fn eval(&self, board: &Board) -> u16 {
         #[allow(clippy::cast_possible_truncation)]
-        let heights: [u8; Board::WIDTH] = std::array::from_fn(|col| board.column_height(col) as u8);
+        let heights: [u16; Board::WIDTH] = std::array::from_fn(|col| board.column_height(col) as u16);
 
         let mut sum = 0;
 

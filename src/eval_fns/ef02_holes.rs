@@ -5,7 +5,7 @@ use crate::game::Board;
 pub struct Holes;
 
 impl EvalFn for Holes {
-    fn eval(&self, board: &Board) -> u8 {
+    fn eval(&self, board: &Board) -> u16 {
         let mut holes = 0;
         for (row_idx, row) in board.rows_bottom_up() {
             for (col, &occupied) in row.iter().enumerate() {

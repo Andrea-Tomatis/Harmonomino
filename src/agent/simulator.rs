@@ -29,7 +29,7 @@ impl Simulator {
 
             let mut max_score = -f64::INFINITY;
 
-            let mut base_piece: FallingPiece = FallingPiece::spawn(Tetromino::random());
+            let base_piece: FallingPiece = FallingPiece::spawn(Tetromino::random());
 
             //try every rotation
             for j in 0..=3 {
@@ -48,7 +48,7 @@ impl Simulator {
                         if game.board.can_place(&rotated_piece) {
                             let possible_board = game.board.with_piece(&rotated_piece);
 
-                            let score = calculate_weighted_score(&possible_board, &self.weights);
+                            let score: f64 = calculate_weighted_score(&possible_board, &self.weights);
                             if score > max_score {
                                 next_state = GameState::from_board(possible_board);
                                 max_score = score;
@@ -64,6 +64,8 @@ impl Simulator {
             }
 
             game = next_state.clone();
+
+            //TODO: Implement row cancellation + shifting
 
             // Visualization and loop logic
             let formatted_string = format!("Current State {}:\n{}", i, game.board);

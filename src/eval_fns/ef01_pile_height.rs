@@ -7,11 +7,11 @@ pub struct PileHeight;
 
 impl EvalFn for PileHeight {
     #[allow(clippy::cast_possible_truncation)]
-    fn eval(&self, board: &Board) -> u8 {
+    fn eval(&self, board: &Board) -> u16 {
         // Find the highest row with any occupied cell
         for row in (0..Board::HEIGHT).rev() {
             if board[row].iter().any(|&cell| cell) {
-                return (row + 1) as u8;
+                return (row + 1) as u16;
             }
         }
         0

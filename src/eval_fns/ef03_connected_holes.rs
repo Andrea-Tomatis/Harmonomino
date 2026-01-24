@@ -7,7 +7,7 @@ use crate::game::Board;
 pub struct ConnectedHoles;
 
 impl EvalFn for ConnectedHoles {
-    fn eval(&self, board: &Board) -> u8 {
+    fn eval(&self, board: &Board) -> u16 {
         let mut total = 0;
 
         for col in 0..Board::WIDTH {

@@ -6,7 +6,7 @@ use crate::game::Board;
 pub struct ColTransitions;
 
 impl EvalFn for ColTransitions {
-    fn eval(&self, board: &Board) -> u8 {
+    fn eval(&self, board: &Board) -> u16 {
         let mut transitions = 0;
 
         for col in 0..Board::WIDTH {
@@ -24,7 +24,7 @@ impl EvalFn for ColTransitions {
 
             // Top cell to ceiling (ceiling counts as empty, so transition only if top cell is filled)
             // unless we don't want to count it, unclear based on paper, purposefully untested
-            transitions += u8::from(board[Board::HEIGHT - 1][col]);
+            transitions += u16::from(board[Board::HEIGHT - 1][col]);
         }
 
         transitions

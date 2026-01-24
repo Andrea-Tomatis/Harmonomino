@@ -5,11 +5,11 @@ pub struct WeightedBlocks;
 
 impl EvalFn for WeightedBlocks {
     #[allow(clippy::cast_possible_truncation)]
-    fn eval(&self, board: &Board) -> u8 {
+    fn eval(&self, board: &Board) -> u16 {
         board
             .rows_bottom_up()
             .map(|(i, row)| {
-                (row.iter().filter(|&&cell| cell).count() as u8).saturating_mul((i + 1) as u8)
+                (row.iter().filter(|&&cell| cell).count() as u16).saturating_mul((i + 1) as u16)
             })
             .sum()
     }
