@@ -102,10 +102,29 @@ impl Board {
     /// Returns true if all cells are within bounds and unoccupied.
     #[must_use]
     pub fn can_place(&self, piece: &FallingPiece) -> bool {
-        piece
-            .cells()
+        let cells = piece.cells();
+
+        // 1. Check for collisions (Original Logic)
+        // The piece must fit entirely into empty space.
+        let no_collision = cells
             .iter()
-            .all(|&(col, row)| !self.is_occupied(col, row))
+            .all(|&(col, row)| !self.is_occupied(col, row));
+
+        if !no_collision {
+            return false;
+        }
+
+        // 2. Check for support (New Logic)
+        // To be a valid "placement" (resting spot), at least one cell of the piece
+        // must be sitting on top of something solid (the floor or another block).
+        let is_grounded = cells
+            .iter()
+            .any(|&(col, row)| {
+                // Check if we are on the floor (row 0) OR if the cell below is occupied
+                row == 0 || self.is_occupied(col, row - 1)
+            });
+
+        is_grounded
     }
 
     /// Places a piece on the board, filling the cells.

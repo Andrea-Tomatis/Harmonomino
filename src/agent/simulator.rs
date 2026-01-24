@@ -29,31 +29,21 @@ impl Simulator {
 
             let mut max_score = -f64::INFINITY;
 
-            let mut base_piece = FallingPiece::spawn(Tetromino::random());
-            base_piece = base_piece.moved(-3, 0); // NOTE: why move piece to the left?
+            let mut base_piece: FallingPiece = FallingPiece::spawn(Tetromino::random());
 
             //try every rotation
             for j in 0..=3 {
                 let mut rotated_piece = base_piece;
 
-                for _ in 0..j {
-                    rotated_piece = rotated_piece.rotated_cw();
-                }
-
                 //try if it fits in any place between the first free line and the last avaible space
-                //piece.moved(0,id_top);
 
-                for k in 0..Board::WIDTH {
-                    rotated_piece = rotated_piece.moved(0, 1);
+                for k in 0..Board::HEIGHT {
 
-                    for _ in 0..Board::HEIGHT {
-                        #[allow(clippy::cast_possible_truncation)]
-                        let dcol = (-1_i8).pow(k as u32);
+                    for h in 0..Board::WIDTH {
 
-                        rotated_piece = rotated_piece.moved(dcol, 0);
-
-                        // NOTE: It is not necessary to first create a piece and then manouver it into position.
-                        // Creating a `FallingPiece` directly at the target position would be more efficient and produce cleaner code.
+                        rotated_piece.row = k as i8;
+                        rotated_piece.col = h as i8;
+                        rotated_piece.rotation = crate::game::Rotation(j as u8);
 
                         if game.board.can_place(&rotated_piece) {
                             let possible_board = game.board.with_piece(&rotated_piece);
@@ -74,6 +64,10 @@ impl Simulator {
             }
 
             game = next_state.clone();
+
+            // Visualization and loop logic
+            let formatted_string = format!("Current State {}:\n{}", i, game.board);
+            println!("{}", formatted_string);
 
             i += 1;
         }
