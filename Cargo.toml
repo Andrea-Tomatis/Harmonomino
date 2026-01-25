@@ -7,6 +7,7 @@ default-run = "harmonomino"
 [dependencies]
 rand = "0.9"
 ratatui = "0.30"
+rayon = "1.10"
 
 [lints.clippy]
 pedantic = { level = "deny", priority = -1 }

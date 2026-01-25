@@ -72,7 +72,7 @@ impl HarmonySearch {
         }
 
         // Optimization Loop
-        for _ in 0..self.max_iter {
+        for cnt in 0..self.max_iter {
             let mut new_harmony = [0.0; 16];
 
             for (i, note) in new_harmony.iter_mut().enumerate() {
@@ -95,6 +95,8 @@ impl HarmonySearch {
 
             let sim: Simulator = Simulator::new(new_harmony, sim_length);
             let new_fitness: f64 = f64::from(sim.simulate_game());
+
+            println!("Itaration {}: {}", cnt, new_fitness);
 
             // Maximization Logic: Find min (worst) to replace
             let (worst_idx, &worst_fitness) = self

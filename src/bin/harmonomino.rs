@@ -6,15 +6,15 @@ fn main() {
 
     let mut solver = HarmonySearch::new(
         5,    // Memory Size
-        1,    // Iterations
+        5000,    // Iterations
         0.95, // Accept Rate
         0.99, // Pitch Adjust Rate
-        0.01, // Bandwidth
+        0.1, // Bandwidth
     );
 
     println!("Starting Optimization (Maximization)...");
 
-    let (best_vars, best_score) = solver.optimize(10, (-1.0, 1.0));
+    let (best_vars, best_score) = solver.optimize(100, (-1.0, 1.0));
 
     println!("Best Fitness Found: {best_score:.5}");
     println!(
