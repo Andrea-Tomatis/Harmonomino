@@ -102,11 +102,18 @@ impl Board {
     /// Returns true if all cells are within bounds and unoccupied.
     #[must_use]
     pub fn can_place(&self, piece: &FallingPiece) -> bool {
+        piece
+            .cells()
+            .iter()
+            .all(|&(col, row)| !self.is_occupied(col, row))
+    }
+
+    pub fn can_lock(&self, piece: &FallingPiece) -> bool {
         let cells = piece.cells();
 
         // 1. Check for collisions (Original Logic)
         // The piece must fit entirely into empty space.
-        let no_collision = cells.iter().all(|&(col, row)| !self.is_occupied(col, row));
+        let no_collision = self.can_place(&piece);
 
         if !no_collision {
             return false;

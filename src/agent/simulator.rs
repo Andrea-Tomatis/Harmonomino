@@ -43,7 +43,7 @@ impl Simulator {
                         rotated_piece.col = h as i8;
                         rotated_piece.rotation = crate::game::Rotation(j as u8);
 
-                        if game.board.can_place(&rotated_piece) {
+                        if game.board.can_lock(&rotated_piece) {
                             let possible_board = game.board.with_piece(&rotated_piece);
 
                             let score: f64 =
