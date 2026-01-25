@@ -29,9 +29,12 @@ impl Simulator {
             // --- PARALLEL SEARCH START ---
             // We combine Rotations (0..4) and Rows (0..Height) into a single parallel iterator.
             // This creates ~80 tasks (4 rotations * 20 rows), fully saturating your CPU.
-            let (best_score, best_state_option) = (0..4u8).into_par_iter()
+            let (best_score, best_state_option) = (0..4u8)
+                .into_par_iter()
                 .flat_map(|rot_idx| {
-                    (0..Board::HEIGHT).into_par_iter().map(move |row_idx| (rot_idx, row_idx))
+                    (0..Board::HEIGHT)
+                        .into_par_iter()
+                        .map(move |row_idx| (rot_idx, row_idx))
                 })
                 .map(|(rot_idx, row_idx)| {
                     // --- THREAD LOCAL WORK ---
@@ -63,7 +66,7 @@ impl Simulator {
                 // Reduce: Compare all 80+ results to find the global maximum
                 .reduce(
                     || (-f64::INFINITY, None),
-                    |a, b| if a.0 > b.0 { a } else { b }
+                    |a, b| if a.0 > b.0 { a } else { b },
                 );
 
             // Check if we found a valid move
@@ -72,7 +75,7 @@ impl Simulator {
                 Some(next_state) if best_score > -f64::INFINITY => {
                     game = next_state;
                     // Move found, continue loop
-                },
+                }
                 _ => {
                     // No valid move found, or score was -INFINITY
                     break;
@@ -81,7 +84,7 @@ impl Simulator {
 
             // Game Logic: Clear rows and advance
             game.rows_cleared += game.board.clear_full_rows();
-            
+
             // Optional: Visualization
             // let formatted_string = format!("Current State {}:\n{}", i, game.board);
             // println!("{}", formatted_string);

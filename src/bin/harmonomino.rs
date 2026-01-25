@@ -6,10 +6,10 @@ fn main() {
 
     let mut solver = HarmonySearch::new(
         5,    // Memory Size
-        5000,    // Iterations
+        5000, // Iterations
         0.95, // Accept Rate
         0.99, // Pitch Adjust Rate
-        0.1, // Bandwidth
+        0.1,  // Bandwidth
     );
 
     println!("Starting Optimization (Maximization)...");
