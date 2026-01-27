@@ -12,7 +12,7 @@ use super::tetromino::FallingPiece;
 /// - `board[row][9]` is the **right** column
 ///
 /// Supports indexing: `board[row][col]` or `board[row]` for a full row.
-#[derive(Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Board {
     cells: [[bool; 10]; 20],
 }

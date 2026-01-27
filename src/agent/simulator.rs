@@ -2,6 +2,7 @@ use crate::eval_fns::calculate_weighted_score;
 use crate::game::{Board, FallingPiece, GameState, Tetromino};
 use rayon::prelude::*; // Ensure rayon is imported
 
+const ROWS_CLEARED_WEIGHT: f64 = 100.0;
 pub struct Simulator {
     pub weights: [f64; 16],
     pub max_length: usize,
@@ -18,7 +19,17 @@ impl Simulator {
         }
     }
 
+    /// Simulates a Tetris game using parallelized move evaluation.
+    ///
+    /// # Panics
+    ///
+    /// Panics if "Hopefully not".
+    ///
+    /// # Returns
+    ///
+    /// Fitness: The total number of rows cleared during the simulation.
     #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     pub fn simulate_game(self) -> u32 {
         let mut i: usize = 0;
         let mut game = GameState::new();
@@ -29,7 +40,7 @@ impl Simulator {
             // --- PARALLEL SEARCH START ---
             // We combine Rotations (0..4) and Rows (0..Height) into a single parallel iterator.
             // This creates ~80 tasks (4 rotations * 20 rows), fully saturating your CPU.
-            let (best_score, best_state_option) = (0..4u8)
+            let (best_score, best_state_option, best_rows_cleared) = (0..4u8)
                 .into_par_iter()
                 .flat_map(|rot_idx| {
                     (0..Board::HEIGHT)
@@ -44,16 +55,22 @@ impl Simulator {
                     let mut rotated_piece = base_piece;
                     rotated_piece.rotation = crate::game::Rotation(rot_idx);
                     rotated_piece.row = row_idx as i8;
+                    let mut rows_cleared = 0;
 
                     // We keep the Column loop serial. It's very tight (only ~10 iterations)
                     // and splitting it further would likely add more overhead than speed.
                     for col_idx in 0..Board::WIDTH {
                         rotated_piece.col = col_idx as i8;
+                        rows_cleared = 0;
 
                         // Check if valid (read-only access to game.board is safe)
                         if game.board.can_lock(&rotated_piece) {
-                            let possible_board = game.board.with_piece(&rotated_piece);
-                            let score = calculate_weighted_score(&possible_board, &self.weights);
+                            let mut possible_board = game.board.with_piece(&rotated_piece);
+
+                            // Game Logic: Clear rows and advance
+                            rows_cleared += possible_board.clear_full_rows();
+                            let score = calculate_weighted_score(&possible_board, &self.weights)
+                                + f64::from(rows_cleared) * ROWS_CLEARED_WEIGHT;
 
                             if score > local_max_score {
                                 local_max_score = score;
@@ -61,13 +78,15 @@ impl Simulator {
                             }
                         }
                     }
-                    (local_max_score, local_best_state)
+                    (local_max_score, local_best_state, rows_cleared)
                 })
-                // Reduce: Compare all 80+ results to find the global maximum
-                .reduce(
-                    || (-f64::INFINITY, None),
-                    |a, b| if a.0 > b.0 { a } else { b },
-                );
+                .max_by(|a, b| a.0.partial_cmp(&b.0).expect("Prey this doesn't happen"))
+                .expect("Prey this doesn't happen");
+            // Reduce: Compare all 80+ results to find the global maximum
+            // .reduce(
+            //     || (-f64::INFINITY, None, 0),
+            //     |a, b| if a.0 > b.0 { a } else { b },
+            // );
 
             // Check if we found a valid move
             // reduce returns (f64, Option<GameState>) directly, not wrapped in another Option.
@@ -82,12 +101,11 @@ impl Simulator {
                 }
             }
 
-            // Game Logic: Clear rows and advance
-            game.rows_cleared += game.board.clear_full_rows();
+            game.rows_cleared += best_rows_cleared;
 
             // Optional: Visualization
-            // let formatted_string = format!("Current State {}:\n{}", i, game.board);
-            // println!("{}", formatted_string);
+            let formatted_string = format!("Current State {}:\n{}", i, game.board);
+            println!("{formatted_string}");
 
             i += 1;
         }

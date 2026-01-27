@@ -83,7 +83,7 @@ impl HarmonySearch {
 
                     // Pitch Adjustment
                     if rng.random::<f64>() < self.pitch_adj_rate {
-                        let adjustment = rng.random_range(-1.0..=1.0) * self.band_width;
+                        let adjustment = rng.random_range(-1.0..=1.0) * self.band_width; // TODO: maybe Gaussian
                         value += adjustment;
                     }
                     *note = value;
@@ -96,7 +96,7 @@ impl HarmonySearch {
             let sim: Simulator = Simulator::new(new_harmony, sim_length);
             let new_fitness: f64 = f64::from(sim.simulate_game());
 
-            println!("Itaration {}: {}", cnt, new_fitness);
+            println!("Itaration {cnt}: {new_fitness}");
 
             // Maximization Logic: Find min (worst) to replace
             let (worst_idx, &worst_fitness) = self
