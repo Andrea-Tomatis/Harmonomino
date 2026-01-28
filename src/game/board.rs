@@ -108,24 +108,19 @@ impl Board {
             .all(|&(col, row)| !self.is_occupied(col, row))
     }
 
+    /// Checks if a piece can be locked (placed and grounded) at its current position.
+    /// Returns true if the piece fits without collision and has support below.
+    #[must_use]
     pub fn can_lock(&self, piece: &FallingPiece) -> bool {
         let cells = piece.cells();
 
-        // 1. Check for collisions (Original Logic)
-        // The piece must fit entirely into empty space.
-        let no_collision = self.can_place(&piece);
-
-        if !no_collision {
+        if !self.can_place(piece) {
             return false;
         }
-        // To be a valid "placement" (resting spot), at least one cell of the piece
-        // must be sitting on top of something solid (the floor or another block).
-        let is_grounded = cells.iter().any(|&(col, row)| {
-            // Check if we are on the floor (row 0) OR if the cell below is occupied
-            row == 0 || self.is_occupied(col, row - 1)
-        });
 
-        is_grounded
+        cells
+            .iter()
+            .any(|&(col, row)| row == 0 || self.is_occupied(col, row - 1))
     }
 
     /// Places a piece on the board, filling the cells.
@@ -145,7 +140,7 @@ impl Board {
     /// Panics if the piece cannot be placed.
     #[must_use]
     pub fn with_piece(&self, piece: &FallingPiece) -> Self {
-        let mut new_board = self.clone();
+        let mut new_board = *self;
         new_board.place(piece);
         new_board
     }
