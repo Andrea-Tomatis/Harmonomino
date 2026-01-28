@@ -1,24 +1,32 @@
-use harmonomino::harmony::HarmonySearch;
+use std::io;
+use std::path::PathBuf;
 
-fn main() {
-    // Example Objective: Maximize an inverted sphere function (Higher is better)
-    // Theoretical Max is 0.0 at [0,0,...]
+use harmonomino::apply_flags;
+use harmonomino::cli::Cli;
+use harmonomino::harmony::{OptimizeConfig, optimize_weights};
 
-    let mut solver = HarmonySearch::new(
-        5,    // Memory Size
-        500,  // Iterations
-        0.95, // Accept Rate
-        0.99, // Pitch Adjust Rate
-        0.1,  // Bandwidth
-    );
+fn main() -> io::Result<()> {
+    let cli = Cli::parse();
 
-    println!("Starting Optimization (Maximization)...");
+    if cli.help_requested() {
+        println!("{}", OptimizeConfig::usage());
+        return Ok(());
+    }
 
-    let (best_vars, best_score) = solver.optimize(1000, (-1.0, 1.0));
+    let mut config = OptimizeConfig::default();
+    apply_flags!(cli, {
+        "--memory-size"   => config.memory_size,
+        "--iterations"    => config.iterations,
+        "--accept-rate"   => config.accept_rate,
+        "--pitch-adj-rate" => config.pitch_adj_rate,
+        "--bandwidth"     => config.bandwidth,
+        "--sim-length"    => config.sim_length,
+    });
 
-    println!("Best Fitness Found: {best_score:.5}");
-    println!(
-        "Best Vector (first 3): [{:.3}, {:.3}, {:.3}, ...]",
-        best_vars[0], best_vars[1], best_vars[2]
-    );
+    let output: PathBuf = cli
+        .get("--output")
+        .map_or_else(|| PathBuf::from("weights.txt"), PathBuf::from);
+
+    optimize_weights(&config, &output)?;
+    Ok(())
 }

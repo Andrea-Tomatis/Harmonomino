@@ -1,6 +1,108 @@
+use std::io;
+use std::path::Path;
+
 use rand::Rng;
 
 use crate::agent::simulator::Simulator;
+use crate::weights;
+
+/// Configuration for a full optimization run.
+#[derive(Debug, Clone)]
+pub struct OptimizeConfig {
+    pub memory_size: usize,
+    pub iterations: usize,
+    pub accept_rate: f64,
+    pub pitch_adj_rate: f64,
+    pub bandwidth: f64,
+    pub sim_length: usize,
+    pub bounds: (f64, f64),
+}
+
+impl OptimizeConfig {
+    pub const DEFAULT_MEMORY_SIZE: usize = 5;
+    pub const DEFAULT_ITERATIONS: usize = 500;
+    pub const DEFAULT_ACCEPT_RATE: f64 = 0.95;
+    pub const DEFAULT_PITCH_ADJ_RATE: f64 = 0.99;
+    pub const DEFAULT_BANDWIDTH: f64 = 0.1;
+    pub const DEFAULT_SIM_LENGTH: usize = 1000;
+    pub const DEFAULT_BOUNDS: (f64, f64) = (-1.0, 1.0);
+
+    /// Returns a usage string with the current default values.
+    #[must_use]
+    pub fn usage() -> String {
+        format!(
+            "\
+Usage: harmonomino [OPTIONS]
+
+Runs Harmony Search optimization to find optimal Tetris agent weights.
+
+Options:
+  --memory-size <N>     Harmony memory size           [default: {}]
+  --iterations <N>      Number of HSA iterations      [default: {}]
+  --accept-rate <F>     Memory consideration rate     [default: {}]
+  --pitch-adj-rate <F>  Pitch adjustment rate         [default: {}]
+  --bandwidth <F>       Pitch adjustment bandwidth    [default: {}]
+  --sim-length <N>      Pieces per simulation game    [default: {}]
+  --output <PATH>       Output weights file           [default: weights.txt]
+  --help                Print this help message",
+            Self::DEFAULT_MEMORY_SIZE,
+            Self::DEFAULT_ITERATIONS,
+            Self::DEFAULT_ACCEPT_RATE,
+            Self::DEFAULT_PITCH_ADJ_RATE,
+            Self::DEFAULT_BANDWIDTH,
+            Self::DEFAULT_SIM_LENGTH,
+        )
+    }
+}
+
+impl Default for OptimizeConfig {
+    fn default() -> Self {
+        Self {
+            memory_size: Self::DEFAULT_MEMORY_SIZE,
+            iterations: Self::DEFAULT_ITERATIONS,
+            accept_rate: Self::DEFAULT_ACCEPT_RATE,
+            pitch_adj_rate: Self::DEFAULT_PITCH_ADJ_RATE,
+            bandwidth: Self::DEFAULT_BANDWIDTH,
+            sim_length: Self::DEFAULT_SIM_LENGTH,
+            bounds: Self::DEFAULT_BOUNDS,
+        }
+    }
+}
+
+/// Runs the Harmony Search optimization and saves the best weights to `output`.
+///
+/// Prints progress to stdout. Returns the best weights found.
+///
+/// # Errors
+///
+/// Returns an error if the weights file cannot be written.
+pub fn optimize_weights(config: &OptimizeConfig, output: &Path) -> io::Result<[f64; 16]> {
+    let mut solver = HarmonySearch::new(
+        config.memory_size,
+        config.iterations,
+        config.accept_rate,
+        config.pitch_adj_rate,
+        config.bandwidth,
+    );
+
+    println!(
+        "Starting optimization ({} iterations)...",
+        config.iterations
+    );
+
+    let (best_weights, best_score) = solver.optimize(config.sim_length, config.bounds);
+
+    println!("Best fitness: {best_score:.5}");
+    println!(
+        "Best weights (first 3): [{:.3}, {:.3}, {:.3}, ...]",
+        best_weights[0], best_weights[1], best_weights[2]
+    );
+
+    weights::save(output, &best_weights)?;
+    println!("Weights saved to {}", output.display());
+
+    Ok(best_weights)
+}
 
 #[derive(Debug)]
 pub struct HarmonySearch {

@@ -11,14 +11,14 @@ use crate::game::{Board, FallingPiece, GamePhase, Tetromino};
 use super::App;
 
 /// Info panel width.
-const INFO_PANEL_WIDTH: u16 = 20;
+pub const INFO_PANEL_WIDTH: u16 = 20;
 
 /// Minimum cell dimensions.
 const MIN_CELL_WIDTH: u16 = 2;
 const MIN_CELL_HEIGHT: u16 = 1;
 
 /// Returns the color for a tetromino type.
-const fn tetromino_color(tetromino: Tetromino) -> Color {
+pub const fn tetromino_color(tetromino: Tetromino) -> Color {
     match tetromino {
         Tetromino::I => Color::Cyan,
         Tetromino::O => Color::Yellow,
@@ -87,8 +87,30 @@ pub fn draw(frame: &mut Frame, app: &App) {
 }
 
 /// Draws the main game board, scaled to fit the area.
-#[allow(clippy::cast_possible_truncation)]
 fn draw_board(frame: &mut Frame, app: &App, area: Rect) {
+    let ghost_cells = app.game.ghost_piece().map(FallingPiece::cells);
+    let current_cells = app.game.current.map(|p| (p.cells(), p.tetromino));
+
+    render_board(
+        frame,
+        &app.game.board,
+        current_cells.as_ref(),
+        ghost_cells.as_ref(),
+        area,
+        " TETRIS ",
+    );
+}
+
+/// Renders a board with optional current and ghost pieces into the given area.
+#[allow(clippy::cast_possible_truncation)]
+pub fn render_board(
+    frame: &mut Frame,
+    board: &Board,
+    current: Option<&([(i8, i8); 4], Tetromino)>,
+    ghost: Option<&[(i8, i8); 4]>,
+    area: Rect,
+    title: &str,
+) {
     let (cell_width, cell_height) = calculate_cell_size(area);
 
     // Calculate actual board dimensions
@@ -101,14 +123,10 @@ fn draw_board(frame: &mut Frame, app: &App, area: Rect) {
     let block = Block::default()
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray))
-        .title(" TETRIS ");
+        .title(title);
 
     let inner = block.inner(centered);
     frame.render_widget(block, centered);
-
-    // Get ghost and current piece positions
-    let ghost_cells = app.game.ghost_piece().map(FallingPiece::cells);
-    let current_cells = app.game.current.map(|p| (p.cells(), p.tetromino));
 
     // Build the display line by line
     let mut lines: Vec<Line> = Vec::with_capacity(Board::HEIGHT * cell_height as usize);
@@ -121,13 +139,7 @@ fn draw_board(frame: &mut Frame, app: &App, area: Rect) {
             let mut spans: Vec<Span> = Vec::with_capacity(Board::WIDTH);
 
             for col in 0..Board::WIDTH {
-                let (cell_type, color) = get_cell_appearance(
-                    &app.game.board,
-                    col,
-                    board_row,
-                    current_cells.as_ref(),
-                    ghost_cells.as_ref(),
-                );
+                let (cell_type, color) = get_cell_appearance(board, col, board_row, current, ghost);
 
                 let cell_text = render_cell(cell_type, cell_width);
                 spans.push(styled_span(cell_text, cell_type, color));
