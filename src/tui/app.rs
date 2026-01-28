@@ -1,6 +1,11 @@
 use std::time::{Duration, Instant};
 
+use ratatui::Frame;
+
 use crate::game::{GamePhase, GameState};
+
+use super::event_loop::TuiApp;
+use super::ui;
 
 /// Application state wrapping `GameState` with timing for the TUI.
 pub struct App {
@@ -23,79 +28,88 @@ impl App {
             paused: false,
         }
     }
+}
 
-    /// Restarts the game.
-    pub fn restart(&mut self) {
-        self.game = GameState::new();
-        self.last_tick = Instant::now();
-        self.paused = false;
+impl Default for App {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl TuiApp for App {
+    fn game_phase(&self) -> GamePhase {
+        self.game.phase
+    }
+    fn last_tick(&self) -> Instant {
+        self.last_tick
+    }
+    fn tick_rate(&self) -> Duration {
+        self.tick_rate
+    }
+    fn should_quit(&self) -> bool {
+        self.should_quit
     }
 
-    /// Handles gravity tick - piece falls one row.
-    pub fn on_tick(&mut self) {
+    fn draw(&self, frame: &mut Frame) {
+        ui::draw(frame, self);
+    }
+
+    fn on_tick(&mut self) {
         if !self.paused && self.game.phase == GamePhase::Falling {
             self.game.tick();
         }
         self.last_tick = Instant::now();
     }
 
-    /// Moves the current piece left.
-    pub fn move_left(&mut self) {
-        if !self.paused && self.game.is_active() {
-            self.game.move_left();
-        }
+    fn restart(&mut self) {
+        self.game = GameState::new();
+        self.last_tick = Instant::now();
+        self.paused = false;
     }
 
-    /// Moves the current piece right.
-    pub fn move_right(&mut self) {
-        if !self.paused && self.game.is_active() {
-            self.game.move_right();
-        }
+    fn quit(&mut self) {
+        self.should_quit = true;
     }
 
-    /// Soft drops the current piece (moves down one row).
-    pub fn soft_drop(&mut self) {
-        if !self.paused && self.game.is_active() {
-            self.game.move_down();
-        }
-    }
-
-    /// Hard drops the current piece to the bottom.
-    pub fn hard_drop(&mut self) {
-        if !self.paused && self.game.is_active() {
-            self.game.hard_drop();
-        }
-    }
-
-    /// Rotates the current piece clockwise.
-    pub fn rotate_cw(&mut self) {
-        if !self.paused && self.game.is_active() {
-            self.game.rotate_cw();
-        }
-    }
-
-    /// Rotates the current piece counter-clockwise.
-    pub fn rotate_ccw(&mut self) {
-        if !self.paused && self.game.is_active() {
-            self.game.rotate_ccw();
-        }
-    }
-
-    /// Toggles pause state.
-    pub const fn toggle_pause(&mut self) {
+    fn toggle_pause(&mut self) {
         if self.game.is_active() {
             self.paused = !self.paused;
         }
     }
 
-    /// Quits the application.
-    pub const fn quit(&mut self) {
-        self.should_quit = true;
+    fn move_left(&mut self) {
+        if !self.paused && self.game.is_active() {
+            self.game.move_left();
+        }
     }
-}
 
-impl Default for App {
-    fn default() -> Self {
-        Self::new()
+    fn move_right(&mut self) {
+        if !self.paused && self.game.is_active() {
+            self.game.move_right();
+        }
+    }
+
+    fn soft_drop(&mut self) {
+        if !self.paused && self.game.is_active() {
+            self.game.move_down();
+        }
+    }
+
+    fn hard_drop(&mut self) {
+        if !self.paused && self.game.is_active() {
+            self.game.hard_drop();
+        }
+    }
+
+    fn rotate_cw(&mut self) {
+        if !self.paused && self.game.is_active() {
+            self.game.rotate_cw();
+        }
+    }
+
+    fn rotate_ccw(&mut self) {
+        if !self.paused && self.game.is_active() {
+            self.game.rotate_ccw();
+        }
     }
 }

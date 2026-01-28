@@ -1,7 +1,13 @@
 use std::time::{Duration, Instant};
 
+use ratatui::Frame;
+use ratatui::crossterm::event::KeyCode;
+
 use crate::agent::find_best_move;
-use crate::game::{Board, GamePhase, GameState, MoveResult};
+use crate::game::{Board, GamePhase, GameState, MoveResult, Tetromino};
+
+use super::event_loop::TuiApp;
+use super::versus_ui;
 
 /// Application state for the versus mode: user vs agent.
 pub struct VersusApp {
@@ -33,16 +39,6 @@ impl VersusApp {
         }
     }
 
-    /// Restarts both games.
-    pub fn restart(&mut self) {
-        self.user_game = GameState::new();
-        self.agent_board = Board::new();
-        self.agent_rows_cleared = 0;
-        self.agent_game_over = false;
-        self.last_tick = Instant::now();
-        self.paused = false;
-    }
-
     /// Syncs the agent board to match the user's current state.
     pub const fn sync_agent(&mut self) {
         self.agent_board = self.user_game.board;
@@ -50,18 +46,8 @@ impl VersusApp {
         self.agent_game_over = false;
     }
 
-    /// Handles gravity tick.
-    pub fn on_tick(&mut self) {
-        if !self.paused && self.user_game.phase == GamePhase::Falling {
-            let piece = self.user_game.current.map(|p| p.tetromino);
-            let result = self.user_game.tick();
-            self.handle_lock(result, piece);
-        }
-        self.last_tick = Instant::now();
-    }
-
     /// After any user action that may lock a piece, feed the same piece to the agent.
-    fn handle_lock(&mut self, result: MoveResult, piece: Option<crate::game::Tetromino>) {
+    fn handle_lock(&mut self, result: MoveResult, piece: Option<Tetromino>) {
         if matches!(result, MoveResult::Locked { .. })
             && let Some(tetromino) = piece
         {
@@ -70,7 +56,7 @@ impl VersusApp {
     }
 
     /// Lets the agent place the given piece optimally.
-    fn agent_place(&mut self, piece: crate::game::Tetromino) {
+    fn agent_place(&mut self, piece: Tetromino) {
         if self.agent_game_over {
             return;
         }
@@ -84,20 +70,67 @@ impl VersusApp {
             }
         }
     }
+}
 
-    pub fn move_left(&mut self) {
+impl TuiApp for VersusApp {
+    fn game_phase(&self) -> GamePhase {
+        self.user_game.phase
+    }
+    fn last_tick(&self) -> Instant {
+        self.last_tick
+    }
+    fn tick_rate(&self) -> Duration {
+        self.tick_rate
+    }
+    fn should_quit(&self) -> bool {
+        self.should_quit
+    }
+
+    fn draw(&self, frame: &mut Frame) {
+        versus_ui::draw_versus(frame, self);
+    }
+
+    fn on_tick(&mut self) {
+        if !self.paused && self.user_game.phase == GamePhase::Falling {
+            let piece = self.user_game.current.map(|p| p.tetromino);
+            let result = self.user_game.tick();
+            self.handle_lock(result, piece);
+        }
+        self.last_tick = Instant::now();
+    }
+
+    fn restart(&mut self) {
+        self.user_game = GameState::new();
+        self.agent_board = Board::new();
+        self.agent_rows_cleared = 0;
+        self.agent_game_over = false;
+        self.last_tick = Instant::now();
+        self.paused = false;
+    }
+
+    fn quit(&mut self) {
+        self.should_quit = true;
+    }
+
+    fn toggle_pause(&mut self) {
+        if self.user_game.is_active() {
+            self.paused = !self.paused;
+        }
+    }
+
+    fn move_left(&mut self) {
         if !self.paused && self.user_game.is_active() {
             self.user_game.move_left();
         }
     }
 
-    pub fn move_right(&mut self) {
+    fn move_right(&mut self) {
         if !self.paused && self.user_game.is_active() {
             self.user_game.move_right();
         }
     }
 
-    pub fn soft_drop(&mut self) {
+    fn soft_drop(&mut self) {
         if !self.paused && self.user_game.is_active() {
             let piece = self.user_game.current.map(|p| p.tetromino);
             let result = self.user_game.move_down();
@@ -105,7 +138,7 @@ impl VersusApp {
         }
     }
 
-    pub fn hard_drop(&mut self) {
+    fn hard_drop(&mut self) {
         if !self.paused && self.user_game.is_active() {
             let piece = self.user_game.current.map(|p| p.tetromino);
             let result = self.user_game.hard_drop();
@@ -113,25 +146,21 @@ impl VersusApp {
         }
     }
 
-    pub fn rotate_cw(&mut self) {
+    fn rotate_cw(&mut self) {
         if !self.paused && self.user_game.is_active() {
             self.user_game.rotate_cw();
         }
     }
 
-    pub fn rotate_ccw(&mut self) {
+    fn rotate_ccw(&mut self) {
         if !self.paused && self.user_game.is_active() {
             self.user_game.rotate_ccw();
         }
     }
 
-    pub const fn toggle_pause(&mut self) {
-        if self.user_game.is_active() {
-            self.paused = !self.paused;
+    fn handle_extra_key(&mut self, code: KeyCode) {
+        if code == KeyCode::Backspace {
+            self.sync_agent();
         }
-    }
-
-    pub const fn quit(&mut self) {
-        self.should_quit = true;
     }
 }
