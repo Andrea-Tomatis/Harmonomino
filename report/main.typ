@@ -33,12 +33,6 @@
   // line-numbering: true,
 )
 
-// #show: bibliography.with(
-//   style: "elsarticle-num",
-// )
-
-
-
 = Introduction
 
 Based on work by #cite(<Romero2011TetrisHarmonySearch>, form: "prose").
