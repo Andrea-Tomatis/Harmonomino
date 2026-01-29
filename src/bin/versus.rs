@@ -1,6 +1,8 @@
 use std::io::{self, Write};
 use std::path::Path;
 
+use harmonomino::agent::ScoringMode;
+use harmonomino::cli::Cli;
 use harmonomino::harmony::{OptimizeConfig, optimize_weights};
 use harmonomino::tui::{VersusApp, run_event_loop};
 use harmonomino::weights;
@@ -8,16 +10,30 @@ use harmonomino::weights;
 const WEIGHTS_PATH: &str = "weights.txt";
 
 fn main() -> io::Result<()> {
-    let path = Path::new(WEIGHTS_PATH);
+    let cli = Cli::parse();
 
-    let weights = if path.exists() {
-        weights::load(path)?
+    let scoring_mode: ScoringMode = cli
+        .get("--scoring-mode")
+        .map(|v| {
+            v.parse()
+                .map_err(|e: String| io::Error::new(io::ErrorKind::InvalidInput, e))
+        })
+        .transpose()?
+        .unwrap_or_default();
+
+    let w = if scoring_mode == ScoringMode::RowsOnly {
+        [0.0; 16]
     } else {
-        prompt_and_generate(path)?
+        let path = Path::new(WEIGHTS_PATH);
+        if path.exists() {
+            weights::load(path)?
+        } else {
+            prompt_and_generate(path)?
+        }
     };
 
     let mut terminal = ratatui::init();
-    let result = run_event_loop(&mut terminal, &mut VersusApp::new(weights));
+    let result = run_event_loop(&mut terminal, &mut VersusApp::new(w, scoring_mode));
     ratatui::restore();
     result
 }

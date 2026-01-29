@@ -3,6 +3,7 @@ use std::time::{Duration, Instant};
 use ratatui::Frame;
 use ratatui::crossterm::event::KeyCode;
 
+use crate::agent::ScoringMode;
 use crate::agent::find_best_move;
 use crate::game::{Board, GamePhase, GameState, MoveResult, Tetromino};
 
@@ -16,6 +17,7 @@ pub struct VersusApp {
     pub agent_rows_cleared: u32,
     pub agent_game_over: bool,
     pub weights: [f64; 16],
+    pub scoring_mode: ScoringMode,
     pub last_tick: Instant,
     pub tick_rate: Duration,
     pub should_quit: bool,
@@ -23,15 +25,16 @@ pub struct VersusApp {
 }
 
 impl VersusApp {
-    /// Creates a new `VersusApp` with the given weights.
+    /// Creates a new `VersusApp` with the given weights and scoring mode.
     #[must_use]
-    pub fn new(weights: [f64; 16]) -> Self {
+    pub fn new(weights: [f64; 16], scoring_mode: ScoringMode) -> Self {
         Self {
             user_game: GameState::new(),
             agent_board: Board::new(),
             agent_rows_cleared: 0,
             agent_game_over: false,
             weights,
+            scoring_mode,
             last_tick: Instant::now(),
             tick_rate: Duration::from_millis(500),
             should_quit: false,
@@ -60,7 +63,7 @@ impl VersusApp {
         if self.agent_game_over {
             return;
         }
-        match find_best_move(&self.agent_board, piece, &self.weights) {
+        match find_best_move(&self.agent_board, piece, &self.weights, self.scoring_mode) {
             Some((board, rows_cleared)) => {
                 self.agent_board = board;
                 self.agent_rows_cleared += rows_cleared;

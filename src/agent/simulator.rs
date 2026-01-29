@@ -1,8 +1,44 @@
+use std::fmt;
+use std::str::FromStr;
+
 use crate::eval_fns::calculate_weighted_score;
 use crate::game::{Board, FallingPiece, GameState, Tetromino};
 use rayon::prelude::*;
 
-const ROWS_CLEARED_WEIGHT: f64 = 100.0;
+const ROWS_CLEARED_WEIGHT: f64 = 1.0;
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum ScoringMode {
+    #[default]
+    Full,
+    HeuristicsOnly,
+    RowsOnly,
+}
+
+impl FromStr for ScoringMode {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "full" => Ok(Self::Full),
+            "heuristics-only" => Ok(Self::HeuristicsOnly),
+            "rows-only" => Ok(Self::RowsOnly),
+            other => Err(format!(
+                "unknown scoring mode '{other}': expected full, heuristics-only, or rows-only"
+            )),
+        }
+    }
+}
+
+impl fmt::Display for ScoringMode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Full => write!(f, "full"),
+            Self::HeuristicsOnly => write!(f, "heuristics-only"),
+            Self::RowsOnly => write!(f, "rows-only"),
+        }
+    }
+}
 
 /// Finds the optimal placement for a piece on the given board.
 /// Returns the resulting board (with rows cleared) and the number of rows cleared.
@@ -16,6 +52,7 @@ pub fn find_best_move(
     board: &Board,
     piece: Tetromino,
     weights: &[f64; 16],
+    scoring_mode: ScoringMode,
 ) -> Option<(Board, u32)> {
     let base_piece = FallingPiece::spawn(piece);
 
@@ -41,10 +78,16 @@ pub fn find_best_move(
                     let mut possible_board = board.with_piece(&rotated_piece);
                     let current_rows_cleared = possible_board.clear_full_rows();
 
-                    let score = f64::from(current_rows_cleared).mul_add(
-                        ROWS_CLEARED_WEIGHT,
-                        calculate_weighted_score(&possible_board, weights),
-                    );
+                    let score = match scoring_mode {
+                        ScoringMode::Full => f64::from(current_rows_cleared).mul_add(
+                            ROWS_CLEARED_WEIGHT,
+                            calculate_weighted_score(&possible_board, weights),
+                        ),
+                        ScoringMode::HeuristicsOnly => {
+                            calculate_weighted_score(&possible_board, weights)
+                        }
+                        ScoringMode::RowsOnly => f64::from(current_rows_cleared),
+                    };
 
                     if score > local_max_score {
                         local_max_score = score;
@@ -68,14 +111,16 @@ pub fn find_best_move(
 pub struct Simulator {
     pub weights: [f64; 16],
     pub max_length: usize,
+    pub scoring_mode: ScoringMode,
 }
 
 impl Simulator {
     #[must_use]
-    pub const fn new(weights: [f64; 16], max_length: usize) -> Self {
+    pub const fn new(weights: [f64; 16], max_length: usize, scoring_mode: ScoringMode) -> Self {
         Self {
             weights,
             max_length,
+            scoring_mode,
         }
     }
 
@@ -90,7 +135,7 @@ impl Simulator {
         for _ in 0..self.max_length {
             let piece = Tetromino::random();
 
-            match find_best_move(&game.board, piece, &self.weights) {
+            match find_best_move(&game.board, piece, &self.weights, self.scoring_mode) {
                 Some((board, rows_cleared)) => {
                     game = GameState::from_board(board);
                     total_rows_cleared += rows_cleared;

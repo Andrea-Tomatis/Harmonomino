@@ -1,3 +1,3 @@
 pub mod simulator;
 
-pub use simulator::find_best_move;
+pub use simulator::{ScoringMode, find_best_move};

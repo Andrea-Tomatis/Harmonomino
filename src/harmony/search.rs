@@ -3,7 +3,7 @@ use std::path::Path;
 
 use rand::Rng;
 
-use crate::agent::simulator::Simulator;
+use crate::agent::simulator::{ScoringMode, Simulator};
 use crate::weights;
 
 /// Configuration for a full optimization run.
@@ -16,6 +16,7 @@ pub struct OptimizeConfig {
     pub bandwidth: f64,
     pub sim_length: usize,
     pub bounds: (f64, f64),
+    pub scoring_mode: ScoringMode,
 }
 
 impl OptimizeConfig {
@@ -43,6 +44,7 @@ Options:
   --pitch-adj-rate <F>  Pitch adjustment rate         [default: {}]
   --bandwidth <F>       Pitch adjustment bandwidth    [default: {}]
   --sim-length <N>      Pieces per simulation game    [default: {}]
+  --scoring-mode <MODE> Scoring: full, heuristics-only, rows-only [default: full]
   --output <PATH>       Output weights file           [default: weights.txt]
   --help                Print this help message",
             Self::DEFAULT_MEMORY_SIZE,
@@ -65,6 +67,7 @@ impl Default for OptimizeConfig {
             bandwidth: Self::DEFAULT_BANDWIDTH,
             sim_length: Self::DEFAULT_SIM_LENGTH,
             bounds: Self::DEFAULT_BOUNDS,
+            scoring_mode: ScoringMode::default(),
         }
     }
 }
@@ -90,7 +93,8 @@ pub fn optimize_weights(config: &OptimizeConfig, output: &Path) -> io::Result<[f
         config.iterations
     );
 
-    let (best_weights, best_score) = solver.optimize(config.sim_length, config.bounds);
+    let (best_weights, best_score) =
+        solver.optimize(config.sim_length, config.bounds, config.scoring_mode);
 
     println!("Best fitness: {best_score:.5}");
     println!(
@@ -154,7 +158,12 @@ impl HarmonySearch {
     /// # Panics
     ///
     /// Panics if `fitness_mem` is empty at the end of optimization (happens only when `hm_mem_size` is 0).
-    pub fn optimize(&mut self, sim_length: usize, bounds: (f64, f64)) -> ([f64; 16], f64) {
+    pub fn optimize(
+        &mut self,
+        sim_length: usize,
+        bounds: (f64, f64),
+        scoring_mode: ScoringMode,
+    ) -> ([f64; 16], f64) {
         let mut rng = rand::rng();
         let (min_bound, max_bound) = bounds;
 
@@ -169,7 +178,7 @@ impl HarmonySearch {
             }
             self.harm_mem.push(harmony);
 
-            let sim = Simulator::new(harmony, sim_length);
+            let sim = Simulator::new(harmony, sim_length, scoring_mode);
             self.fitness_mem.push(f64::from(sim.simulate_game()));
         }
 
@@ -195,7 +204,7 @@ impl HarmonySearch {
                 }
             }
 
-            let sim: Simulator = Simulator::new(new_harmony, sim_length);
+            let sim: Simulator = Simulator::new(new_harmony, sim_length, scoring_mode);
             let new_fitness: f64 = f64::from(sim.simulate_game());
 
             println!("Iteration {cnt}: {new_fitness}");
