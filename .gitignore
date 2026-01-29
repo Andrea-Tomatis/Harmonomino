@@ -1,4 +1,5 @@
 /target
+weights*.txt
 
 # macOS
 .DS_Store
