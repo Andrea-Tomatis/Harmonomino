@@ -19,13 +19,12 @@ pub fn find_best_move(
 ) -> Option<(Board, u32)> {
     let base_piece = FallingPiece::spawn(piece);
 
-    let (best_score, best_board, best_rows_cleared) = (0..4u8)
+    let all_parallel_placements: Vec<_> = (0..4u8)
+        .flat_map(|rot_idx| (0..Board::HEIGHT).map(move |row_idx| (rot_idx, row_idx)))
+        .collect();
+
+    let (best_score, best_board, best_rows_cleared) = all_parallel_placements
         .into_par_iter()
-        .flat_map(|rot_idx| {
-            (0..Board::HEIGHT)
-                .into_par_iter()
-                .map(move |row_idx| (rot_idx, row_idx))
-        })
         .map(|(rot_idx, row_idx)| {
             let mut local_max_score = -f64::INFINITY;
             let mut local_best_board: Option<Board> = None;
