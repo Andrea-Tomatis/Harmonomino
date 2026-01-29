@@ -102,7 +102,7 @@ pub fn optimize_weights(config: &OptimizeConfig, output: &Path) -> io::Result<[f
         best_weights[0], best_weights[1], best_weights[2]
     );
 
-    weights::save(output, &best_weights)?;
+    weights::save(output, &best_weights, config.scoring_mode)?;
     println!("Weights saved to {}", output.display());
 
     Ok(best_weights)

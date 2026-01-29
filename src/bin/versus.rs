@@ -26,7 +26,7 @@ fn main() -> io::Result<()> {
     } else {
         let path = Path::new(WEIGHTS_PATH);
         if path.exists() {
-            weights::load(path)?
+            weights::load(path)?.0
         } else {
             prompt_and_generate(path)?
         }

@@ -30,6 +30,18 @@ impl Cli {
             .map(String::as_str)
     }
 
+    /// Returns all values following repeated occurrences of `flag`.
+    #[must_use]
+    pub fn get_all(&self, flag: &str) -> Vec<&str> {
+        self.args
+            .iter()
+            .enumerate()
+            .filter(|(_, a)| a.as_str() == flag)
+            .filter_map(|(i, _)| self.args.get(i + 1))
+            .map(String::as_str)
+            .collect()
+    }
+
     /// Parses a string value into `T`, producing a user-friendly error on failure.
     ///
     /// # Errors

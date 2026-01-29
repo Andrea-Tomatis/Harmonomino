@@ -7,7 +7,7 @@ use rayon::prelude::*;
 
 const ROWS_CLEARED_WEIGHT: f64 = 1.0;
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 pub enum ScoringMode {
     #[default]
     Full,
