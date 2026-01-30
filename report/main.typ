@@ -1,5 +1,7 @@
 #import "@preview/elsearticle:2.0.0": *
 
+// See: https://isis.tu-berlin.de/pluginfile.php/3774882/mod_resource/content/1/Project-Report-Instruction.pdf
+
 #let small_cite(url) = footnote([#link(url, url)])
 
 #let abstract = lorem(100)
