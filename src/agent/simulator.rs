@@ -30,7 +30,7 @@ impl Simulator {
     /// Fitness: The total number of rows cleared during the simulation.
     #[must_use]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn simulate_game(self) -> u32 {
+    pub fn simulate_game(self, n_weights: u8) -> u32 {
         let mut i: usize = 0;
         let mut game = GameState::new();
 
@@ -63,14 +63,14 @@ impl Simulator {
                         rotated_piece.col = col_idx as i8;
 
                         // We calculate current rows for THIS specific column
-                        let mut current_rows_cleared = 0;
+                        let current_rows_cleared:u32;
 
                         if game.board.can_lock(&rotated_piece) {
                             let mut possible_board = game.board.with_piece(&rotated_piece);
 
                             current_rows_cleared = possible_board.clear_full_rows();
 
-                            let score = calculate_weighted_score(&possible_board, &self.weights)
+                            let score = calculate_weighted_score(&possible_board, &self.weights, n_weights)
                                 + f64::from(current_rows_cleared) * ROWS_CLEARED_WEIGHT;
 
                             if score > local_max_score {
@@ -108,7 +108,7 @@ impl Simulator {
             i += 1;
         }
 
-        println!("best result was: {}", total_rows_cleared);
+        //println!("best result was: {}", total_rows_cleared);
         total_rows_cleared
     }
 }

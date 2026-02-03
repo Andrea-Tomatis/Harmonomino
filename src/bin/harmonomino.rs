@@ -14,7 +14,7 @@ fn main() {
 
     println!("Starting Optimization (Maximization)...");
 
-    let (best_vars, best_score) = solver.optimize(1000, (-1.0, 1.0));
+    let (best_vars, best_score) = solver.optimize(1000, (-1.0, 1.0), false, 16);
 
     println!("Best Fitness Found: {best_score:.5}");
     println!(
