@@ -63,15 +63,16 @@ impl Simulator {
                         rotated_piece.col = col_idx as i8;
 
                         // We calculate current rows for THIS specific column
-                        let current_rows_cleared:u32;
+                        let current_rows_cleared: u32;
 
                         if game.board.can_lock(&rotated_piece) {
                             let mut possible_board = game.board.with_piece(&rotated_piece);
 
                             current_rows_cleared = possible_board.clear_full_rows();
 
-                            let score = calculate_weighted_score(&possible_board, &self.weights, n_weights)
-                                + f64::from(current_rows_cleared) * ROWS_CLEARED_WEIGHT;
+                            let score =
+                                calculate_weighted_score(&possible_board, &self.weights, n_weights)
+                                    + f64::from(current_rows_cleared) * ROWS_CLEARED_WEIGHT;
 
                             if score > local_max_score {
                                 local_max_score = score;
