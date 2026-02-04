@@ -54,7 +54,7 @@ fn benchmark_max_iterations() {
 
         println!("Benchmarking Max Iterations: {}\n", max_iter);
 
-        let (_, best_score) = solver.optimize(max_iter, (-1.0, 1.0), true, 16);
+        let (_, best_score) = solver.optimize(100, (-1.0, 1.0), true, 16);
         writeln!(file, "{},{:.5}", max_iter, best_score).expect("Unable to write data");
     }
 }
@@ -101,13 +101,17 @@ fn simulate_games_with_optimized_weights() {
     );
 
     println!("Running optimization to get weights...\n");
-    let (optimized_weights, _) = solver.optimize(500, (-1.0, 1.0), true, 16);
+    let (optimized_weights, _) = solver.optimize(100, (-1.0, 1.0), true, 16);
 
     for num_pieces in (100..=1000).step_by(100) {
         println!("Simulating game with {} pieces...\n", num_pieces);
 
-        let sim: Simulator = Simulator::new(optimized_weights, num_pieces);
-        let score: f64 = f64::from(sim.simulate_game(16));
+        let mut total_score = 0.0;
+        for _ in 0..30 {
+            let sim: Simulator = Simulator::new(optimized_weights.clone(), num_pieces);
+            total_score += f64::from(sim.simulate_game(16));
+        }
+        let score: f64 = total_score / 30.0;
 
         writeln!(file, "{},{:.5}", num_pieces, score).expect("Unable to write data");
     }
@@ -154,9 +158,9 @@ fn run_optimization_multiple_times() {
 
 
 fn main() {
-    benchmark_pitch_adjustment_rate();
-    benchmark_max_iterations();
-    benchmark_bandwidth();
+    //benchmark_pitch_adjustment_rate();
+    //benchmark_max_iterations();
+    //benchmark_bandwidth();
     simulate_games_with_optimized_weights();
-    run_optimization_multiple_times();
+    //run_optimization_multiple_times();
 }
