@@ -12,7 +12,8 @@ fn benchmark_pitch_adjustment_rate() {
     println!("Benchmarking Pitch Adjustment Rate...\n");
 
     let mut file = BufWriter::new(
-        File::create("./results/benchmark_pitch_adjustment_rate.csv").expect("Unable to create file"),
+        File::create("./results/benchmark_pitch_adjustment_rate.csv")
+            .expect("Unable to create file"),
     );
     for pitch_adj_rate in (49..=99).step_by(10).map(|x| x as f64 / 100.0) {
         let mut solver = HarmonySearch::new(
@@ -30,7 +31,7 @@ fn benchmark_pitch_adjustment_rate() {
     }
 }
 
-fn benchmark_max_iterations(averaged:bool) {
+fn benchmark_max_iterations(averaged: bool) {
     println!("Benchmarking Max Iterations...\n");
 
     let mut file = BufWriter::new(
@@ -54,8 +55,9 @@ fn benchmark_max_iterations(averaged:bool) {
 fn benchmark_bandwidth() {
     println!("Benchmarking Bandwidth...\n");
 
-    let mut file =
-        BufWriter::new(File::create("./results/benchmark_bandwidth.csv").expect("Unable to create file"));
+    let mut file = BufWriter::new(
+        File::create("./results/benchmark_bandwidth.csv").expect("Unable to create file"),
+    );
     for bandwidth in [0.05, 0.1, 0.5, 1.0] {
         let mut solver = HarmonySearch::new(
             5,    // Memory Size
@@ -75,8 +77,9 @@ fn benchmark_bandwidth() {
 fn simulate_games_with_optimized_weights() {
     println!("Simulating games with optimized weights...\n");
 
-    let mut file =
-        BufWriter::new(File::create("./results/simulation_results.csv").expect("Unable to create file"));
+    let mut file = BufWriter::new(
+        File::create("./results/simulation_results.csv").expect("Unable to create file"),
+    );
 
     let mut solver = HarmonySearch::new(
         5,    // Memory Size
@@ -106,10 +109,15 @@ fn simulate_games_with_optimized_weights() {
 fn run_optimization_multiple_times() {
     println!("Running optimization 100 times...\n");
 
-    let mut file =
-        BufWriter::new(File::create("./results/optimized_weights.csv").expect("Unable to create file"));
+    let mut file = BufWriter::new(
+        File::create("./results/optimized_weights.csv").expect("Unable to create file"),
+    );
 
-    writeln!(file, "Run,Score,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w15,w16").expect("Unable to write header");
+    writeln!(
+        file,
+        "Run,Score,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w15,w16"
+    )
+    .expect("Unable to write header");
 
     for i in 1..=1000 {
         println!("Running optimization iteration {}...\n", i);
