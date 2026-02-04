@@ -52,7 +52,13 @@ impl HarmonySearch {
     /// # Panics
     ///
     /// Panics if `fitness_mem` is empty at the end of optimization (happens only when `hm_mem_size` is 0).
-    pub fn optimize(&mut self, sim_length: usize, bounds: (f64, f64), averaged:bool, n_weights:u8) -> ([f64; 16], f64) {
+    pub fn optimize(
+        &mut self,
+        sim_length: usize,
+        bounds: (f64, f64),
+        averaged: bool,
+        n_weights: u8,
+    ) -> ([f64; 16], f64) {
         let mut rng = rand::rng();
         let (min_bound, max_bound) = bounds;
 
@@ -68,7 +74,8 @@ impl HarmonySearch {
             self.harm_mem.push(harmony);
 
             let sim = Simulator::new(harmony, sim_length);
-            self.fitness_mem.push(f64::from(sim.simulate_game(n_weights)));
+            self.fitness_mem
+                .push(f64::from(sim.simulate_game(n_weights)));
         }
 
         // Optimization Loop
@@ -105,7 +112,6 @@ impl HarmonySearch {
                 let sim: Simulator = Simulator::new(new_harmony, sim_length);
                 new_fitness = f64::from(sim.simulate_game(n_weights));
             };
-            
 
             //println!("Iteration {cnt}: {new_fitness}");
 

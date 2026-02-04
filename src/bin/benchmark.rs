@@ -1,23 +1,18 @@
+use harmonomino::agent::simulator::Simulator;
 /// Benchark Script for Harmony Search Optimization Algorithm
-/// 
+///
 /// This benchmark script evaluates the performance of the Harmony Search optimization algorithm
 /// by varying key parameters such as Pitch Adjustment Rate, Max Iterations, and Bandwidth.
 /// It also simulates games using optimized weights and runs multiple optimization iterations.
-
-
 use harmonomino::harmony::HarmonySearch;
-use harmonomino::agent::simulator::Simulator;
 use std::fs::File;
-use std::io::{Write, BufWriter};
+use std::io::{BufWriter, Write};
 
-
-
-fn benchmark_pitch_adjustment_rate(){
+fn benchmark_pitch_adjustment_rate() {
     println!("Benchmarking Pitch Adjustment Rate...\n");
-    
+
     let mut file = BufWriter::new(
-        File::create("benchmark_pitch_adjustment_rate.csv")
-            .expect("Unable to create file"),
+        File::create("benchmark_pitch_adjustment_rate.csv").expect("Unable to create file"),
     );
     for pitch_adj_rate in (49..=99).step_by(10).map(|x| x as f64 / 100.0) {
         let mut solver = HarmonySearch::new(
@@ -25,7 +20,7 @@ fn benchmark_pitch_adjustment_rate(){
             500,  // Iterations
             0.95, // Accept Rate
             pitch_adj_rate,
-            0.1,  // Bandwidth
+            0.1, // Bandwidth
         );
 
         println!("Benchmarking Pitch Adjustment Rate: {}\n", pitch_adj_rate);
@@ -35,20 +30,17 @@ fn benchmark_pitch_adjustment_rate(){
     }
 }
 
-
 fn benchmark_max_iterations() {
     println!("Benchmarking Max Iterations...\n");
 
     let mut file = BufWriter::new(
-        File::create("benchmark_max_iterations.csv")
-            .expect("Unable to create file"),
+        File::create("benchmark_max_iterations.csv").expect("Unable to create file"),
     );
     for max_iter in (100..=1000).step_by(100) {
         let mut solver = HarmonySearch::new(
-            5,    // Memory Size
-            max_iter,
-            0.95, // Accept Rate
-            0.99,  // Pitch Adjustment Rate
+            5, // Memory Size
+            max_iter, 0.95, // Accept Rate
+            0.99, // Pitch Adjustment Rate
             0.1,  // Bandwidth
         );
 
@@ -59,20 +51,17 @@ fn benchmark_max_iterations() {
     }
 }
 
-
 fn benchmark_bandwidth() {
     println!("Benchmarking Bandwidth...\n");
 
-    let mut file = BufWriter::new(
-        File::create("benchmark_bandwidth.csv")
-            .expect("Unable to create file"),
-    );
+    let mut file =
+        BufWriter::new(File::create("benchmark_bandwidth.csv").expect("Unable to create file"));
     for bandwidth in [0.05, 0.1, 0.5, 1.0] {
         let mut solver = HarmonySearch::new(
             5,    // Memory Size
             500,  // Iterations
             0.95, // Accept Rate
-            0.99,  // Pitch Adjustment Rate
+            0.99, // Pitch Adjustment Rate
             bandwidth,
         );
 
@@ -83,18 +72,15 @@ fn benchmark_bandwidth() {
     }
 }
 
-
 fn simulate_games_with_optimized_weights() {
     println!("Simulating games with optimized weights...\n");
 
-    let mut file = BufWriter::new(
-        File::create("simulation_results.csv")
-            .expect("Unable to create file"),
-    );
+    let mut file =
+        BufWriter::new(File::create("simulation_results.csv").expect("Unable to create file"));
 
     let mut solver = HarmonySearch::new(
         5,    // Memory Size
-        1000,  // Iterations
+        1000, // Iterations
         0.95, // Accept Rate
         0.99, // Pitch Adjustment Rate
         0.1,  // Bandwidth
@@ -117,14 +103,11 @@ fn simulate_games_with_optimized_weights() {
     }
 }
 
-
 fn run_optimization_multiple_times() {
     println!("Running optimization 100 times...\n");
 
-    let mut file = BufWriter::new(
-        File::create("optimized_weights.csv")
-            .expect("Unable to create file"),
-    );
+    let mut file =
+        BufWriter::new(File::create("optimized_weights.csv").expect("Unable to create file"));
 
     writeln!(file, "Run,Weights").expect("Unable to write header");
 
@@ -155,7 +138,6 @@ fn run_optimization_multiple_times() {
         .expect("Unable to write data");
     }
 }
-
 
 fn main() {
     //benchmark_pitch_adjustment_rate();
