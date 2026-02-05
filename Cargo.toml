@@ -8,6 +8,7 @@ default-run = "harmonomino"
 rand = "0.9"
 ratatui = "0.30"
 rayon = "1.10"
+rand_distr = "0.5"
 
 [lints.clippy]
 pedantic = { level = "deny", priority = -1 }

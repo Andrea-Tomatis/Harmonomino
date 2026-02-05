@@ -34,7 +34,7 @@ fn benchmark_max_iterations(averaged:bool) {
     println!("Benchmarking Max Iterations...\n");
 
     let mut file = BufWriter::new(
-        File::create("./results/benchmark_max_iterations.csv").expect("Unable to create file"),
+        File::create("./results/benchmark_max_iterations_averaged.csv").expect("Unable to create file"),
     );
     for max_iter in (100..=1000).step_by(100) {
         let mut solver = HarmonySearch::new(
@@ -141,8 +141,8 @@ fn run_optimization_multiple_times() {
 
 fn main() {
     //benchmark_pitch_adjustment_rate();
-    benchmark_max_iterations(false);
+    benchmark_max_iterations(true);
     //benchmark_bandwidth();
-    simulate_games_with_optimized_weights();
-    run_optimization_multiple_times();
+    //simulate_games_with_optimized_weights();
+    //run_optimization_multiple_times();
 }

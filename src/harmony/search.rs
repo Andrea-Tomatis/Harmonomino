@@ -79,7 +79,7 @@ impl HarmonySearch {
         }
 
         // Optimization Loop
-        for cnt in 0..self.max_iter {
+        for _ in 0..self.max_iter {
             let mut new_harmony = [0.0; 16];
 
             for (i, note) in new_harmony.iter_mut().enumerate() {
