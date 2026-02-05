@@ -35,7 +35,8 @@ fn benchmark_max_iterations(averaged: bool) {
     println!("Benchmarking Max Iterations...\n");
 
     let mut file = BufWriter::new(
-        File::create("./results/benchmark_max_iterations_averaged.csv").expect("Unable to create file"),
+        File::create("./results/benchmark_max_iterations_averaged.csv")
+            .expect("Unable to create file"),
     );
     for max_iter in (100..=1000).step_by(100) {
         let mut solver = HarmonySearch::new(

@@ -1,8 +1,7 @@
-use harmonomino::harmony::HarmonySearch;
 use harmonomino::harmony::CrossEntropySearch;
+use harmonomino::harmony::HarmonySearch;
 
 fn main() {
-
     let mut solver = HarmonySearch::new(
         5,    // Memory Size
         500,  // Iterations
@@ -22,9 +21,9 @@ fn main() {
     );
 
     let mut ce_solver = CrossEntropySearch::new(
-        10,   // Population Size
-        2,  // Elite Fraction
-        100,  // Iterations
+        10,  // Population Size
+        2,   // Elite Fraction
+        100, // Iterations
     );
 
     println!("Starting Optimization (Cross Entropy)...");
