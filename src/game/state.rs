@@ -36,10 +36,17 @@ impl GameState {
     /// Creates a new game with an empty board and random pieces.
     #[must_use]
     pub fn new() -> Self {
+        let mut rng = rand::rng();
+        Self::new_with_rng(&mut rng)
+    }
+
+    /// Creates a new game with an empty board using a provided RNG.
+    #[must_use]
+    pub fn new_with_rng<R: rand::Rng + ?Sized>(rng: &mut R) -> Self {
         Self {
             board: Board::new(),
-            current: Some(FallingPiece::spawn(Tetromino::random())),
-            next: Tetromino::random(),
+            current: Some(FallingPiece::spawn(Tetromino::random_with_rng(rng))),
+            next: Tetromino::random_with_rng(rng),
             rows_cleared: 0,
             phase: GamePhase::Falling,
         }
@@ -60,10 +67,17 @@ impl GameState {
     /// Creates a game state from an existing board (useful for AI evaluation).
     #[must_use]
     pub fn from_board(board: Board) -> Self {
+        let mut rng = rand::rng();
+        Self::from_board_with_rng(board, &mut rng)
+    }
+
+    /// Creates a game state from an existing board using a provided RNG.
+    #[must_use]
+    pub fn from_board_with_rng<R: rand::Rng + ?Sized>(board: Board, rng: &mut R) -> Self {
         Self {
             board,
-            current: Some(FallingPiece::spawn(Tetromino::random())),
-            next: Tetromino::random(),
+            current: Some(FallingPiece::spawn(Tetromino::random_with_rng(rng))),
+            next: Tetromino::random_with_rng(rng),
             rows_cleared: 0,
             phase: GamePhase::Falling,
         }

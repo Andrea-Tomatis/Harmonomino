@@ -1,6 +1,11 @@
 /target
 weights*.txt
 results/
+experiments/.venv/
+experiments/results/
+experiments/plots/
+experiments/weights/
+experiments/__pycache__/
 
 # macOS
 .DS_Store

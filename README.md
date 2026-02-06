@@ -4,7 +4,7 @@ A Tetris AI agent written in Rust that uses metaheuristic optimization to find o
 
 The agent evaluates board states using 16 weighted heuristic functions (pile height, holes, wells, row transitions, etc.) and optimizes the weight vector to maximize rows cleared.
 
-Based on ...
+Based on work by Romero et al. (Harmony Search for Tetris) and Szita & Lorincz (Noisy Cross-Entropy for Tetris).
 
 ## Quick Start
 
@@ -40,3 +40,18 @@ cargo run --bin benchmark -- --sweep iterations --sim-length 100
 ```
 
 Optimized weights are saved to `weights.txt` and used by the versus mode and benchmark.
+
+## Experiments (uv)
+
+The experiments pipeline lives in `experiments/` and uses `uv` for Python dependencies.
+
+```bash
+cd experiments
+uv sync
+uv run python run_experiments.py
+uv run python plot_results.py
+```
+
+Outputs:
+- `experiments/results/*.csv`
+- `experiments/plots/*.pdf`

@@ -3,6 +3,7 @@ use std::str::FromStr;
 
 use crate::eval_fns::calculate_weighted_score_n;
 use crate::game::{Board, FallingPiece, GameState, Tetromino};
+use crate::weights;
 use rayon::prelude::*;
 
 const ROWS_CLEARED_WEIGHT: f64 = 1.0;
@@ -51,7 +52,7 @@ impl fmt::Display for ScoringMode {
 pub fn find_best_move(
     board: &Board,
     piece: Tetromino,
-    weights: &[f64; 16],
+    weights: &[f64; weights::NUM_WEIGHTS],
     scoring_mode: ScoringMode,
     n_weights: usize,
 ) -> Option<(Board, u32)> {
@@ -110,7 +111,7 @@ pub fn find_best_move(
 }
 
 pub struct Simulator {
-    pub weights: [f64; 16],
+    pub weights: [f64; weights::NUM_WEIGHTS],
     pub max_length: usize,
     pub scoring_mode: ScoringMode,
     pub n_weights: usize,
@@ -118,12 +119,16 @@ pub struct Simulator {
 
 impl Simulator {
     #[must_use]
-    pub const fn new(weights: [f64; 16], max_length: usize, scoring_mode: ScoringMode) -> Self {
+    pub const fn new(
+        weights: [f64; weights::NUM_WEIGHTS],
+        max_length: usize,
+        scoring_mode: ScoringMode,
+    ) -> Self {
         Self {
             weights,
             max_length,
             scoring_mode,
-            n_weights: 16,
+            n_weights: weights::NUM_WEIGHTS,
         }
     }
 
@@ -139,11 +144,18 @@ impl Simulator {
     /// Returns the total number of rows cleared during the simulation.
     #[must_use]
     pub fn simulate_game(self) -> u32 {
-        let mut game = GameState::new();
+        let mut rng = rand::rng();
+        self.simulate_game_with_rng(&mut rng)
+    }
+
+    /// Simulates a Tetris game using a provided RNG.
+    #[must_use]
+    pub fn simulate_game_with_rng<R: rand::Rng + ?Sized>(self, rng: &mut R) -> u32 {
+        let mut game = GameState::new_with_rng(rng);
         let mut total_rows_cleared = 0;
 
         for _ in 0..self.max_length {
-            let piece = Tetromino::random();
+            let piece = Tetromino::random_with_rng(rng);
 
             match find_best_move(
                 &game.board,
@@ -153,7 +165,7 @@ impl Simulator {
                 self.n_weights,
             ) {
                 Some((board, rows_cleared)) => {
-                    game = GameState::from_board(board);
+                    game = GameState::from_board_with_rng(board, rng);
                     total_rows_cleared += rows_cleared;
                     game.rows_cleared = total_rows_cleared;
                 }
@@ -162,5 +174,28 @@ impl Simulator {
         }
 
         total_rows_cleared
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rand::SeedableRng;
+
+    #[test]
+    fn simulate_game_with_rng_is_deterministic() {
+        let weights = [0.0; weights::NUM_WEIGHTS];
+        let sim_length = 100;
+
+        let sim_a = Simulator::new(weights, sim_length, ScoringMode::RowsOnly);
+        let sim_b = Simulator::new(weights, sim_length, ScoringMode::RowsOnly);
+
+        let mut rng_a = rand::rngs::StdRng::seed_from_u64(1234);
+        let mut rng_b = rand::rngs::StdRng::seed_from_u64(1234);
+
+        let rows_a = sim_a.simulate_game_with_rng(&mut rng_a);
+        let rows_b = sim_b.simulate_game_with_rng(&mut rng_b);
+
+        assert_eq!(rows_a, rows_b);
     }
 }

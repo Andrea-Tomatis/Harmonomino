@@ -4,7 +4,11 @@ use std::path::PathBuf;
 use harmonomino::agent::{ScoringMode, simulator::Simulator};
 use harmonomino::apply_flags;
 use harmonomino::cli::Cli;
-use harmonomino::harmony::{CeConfig, OptimizeConfig, optimize_weights, optimize_weights_ce};
+use harmonomino::harmony::{
+    CeConfig, OptimizeConfig, optimize_weights_ce_with_seed, optimize_weights_with_seed,
+};
+use harmonomino::weights;
+use rand::SeedableRng;
 
 fn main() -> io::Result<()> {
     let cli = Cli::parse();
@@ -38,8 +42,16 @@ fn run_hsa(cli: &Cli) -> io::Result<()> {
         "--scoring-mode"   => config.scoring_mode,
         "--n-weights"      => config.n_weights,
         "--averaged-runs"  => config.averaged_runs,
+        "--early-stop-patience" => config.early_stop_patience,
+        "--early-stop-target"   => config.early_stop_target,
     });
     config.averaged = cli.has_flag("--averaged");
+
+    let seed: Option<u64> = cli
+        .get("--seed")
+        .map(|v| cli.parse_value("--seed", v))
+        .transpose()?;
+    let log_csv = cli.get("--log-csv").map(PathBuf::from);
 
     let output: PathBuf = cli
         .get("--output")
@@ -47,13 +59,23 @@ fn run_hsa(cli: &Cli) -> io::Result<()> {
 
     if config.scoring_mode == ScoringMode::RowsOnly {
         println!("Scoring mode: rows-only (skipping HSA optimization)");
-        let sim = Simulator::new([0.0; 16], config.sim_length, ScoringMode::RowsOnly);
-        let fitness = sim.simulate_game();
+        let sim = Simulator::new(
+            [0.0; weights::NUM_WEIGHTS],
+            config.sim_length,
+            ScoringMode::RowsOnly,
+        )
+        .with_n_weights(config.n_weights);
+        let fitness = if let Some(seed) = seed {
+            let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
+            sim.simulate_game_with_rng(&mut rng)
+        } else {
+            sim.simulate_game()
+        };
         println!("Rows cleared: {fitness}");
         return Ok(());
     }
 
-    optimize_weights(&config, &output)?;
+    let _ = optimize_weights_with_seed(&config, &output, seed, log_csv.as_deref())?;
     Ok(())
 }
 
@@ -69,13 +91,21 @@ fn run_ce(cli: &Cli) -> io::Result<()> {
         "--averaged-runs"  => config.averaged_runs,
         "--initial-std-dev" => config.initial_std_dev,
         "--std-dev-floor"  => config.std_dev_floor,
+        "--early-stop-patience" => config.early_stop_patience,
+        "--early-stop-target"   => config.early_stop_target,
     });
     config.averaged = cli.has_flag("--averaged");
+
+    let seed: Option<u64> = cli
+        .get("--seed")
+        .map(|v| cli.parse_value("--seed", v))
+        .transpose()?;
+    let log_csv = cli.get("--log-csv").map(PathBuf::from);
 
     let output: PathBuf = cli
         .get("--output")
         .map_or_else(|| PathBuf::from("weights.txt"), PathBuf::from);
 
-    optimize_weights_ce(&config, &output)?;
+    let _ = optimize_weights_ce_with_seed(&config, &output, seed, log_csv.as_deref())?;
     Ok(())
 }

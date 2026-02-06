@@ -1,3 +1,5 @@
+//! Board evaluation functions used by the agent.
+
 mod helpers;
 
 pub mod ef01_pile_height;
@@ -21,6 +23,7 @@ pub mod ef19_hole_depth;
 // (these require game context beyond the board state)
 
 use crate::game::Board;
+use crate::weights;
 
 pub trait EvalFn {
     /// Evaluates the board and returns a score (0-255).
@@ -53,7 +56,11 @@ pub fn get_all_evaluators() -> Vec<Box<dyn EvalFn>> {
 
 /// Calculates the weighted sum of the first `n_weights` heuristics.
 #[must_use]
-pub fn calculate_weighted_score_n(board: &Board, weights: &[f64; 16], n_weights: usize) -> f64 {
+pub fn calculate_weighted_score_n(
+    board: &Board,
+    weights: &[f64; weights::NUM_WEIGHTS],
+    n_weights: usize,
+) -> f64 {
     get_all_evaluators()
         .iter()
         .zip(weights.iter())
@@ -64,6 +71,6 @@ pub fn calculate_weighted_score_n(board: &Board, weights: &[f64; 16], n_weights:
 
 /// Calculates the weighted sum of all 16 heuristics.
 #[must_use]
-pub fn calculate_weighted_score(board: &Board, weights: &[f64; 16]) -> f64 {
-    calculate_weighted_score_n(board, weights, 16)
+pub fn calculate_weighted_score(board: &Board, weights: &[f64; weights::NUM_WEIGHTS]) -> f64 {
+    calculate_weighted_score_n(board, weights, weights::NUM_WEIGHTS)
 }

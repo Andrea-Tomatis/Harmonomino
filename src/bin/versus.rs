@@ -22,7 +22,7 @@ fn main() -> io::Result<()> {
         .unwrap_or_default();
 
     let w = if scoring_mode == ScoringMode::RowsOnly {
-        [0.0; 16]
+        [0.0; weights::NUM_WEIGHTS]
     } else {
         let path = Path::new(WEIGHTS_PATH);
         if path.exists() {
@@ -38,7 +38,7 @@ fn main() -> io::Result<()> {
     result
 }
 
-fn prompt_and_generate(path: &Path) -> io::Result<[f64; 16]> {
+fn prompt_and_generate(path: &Path) -> io::Result<[f64; weights::NUM_WEIGHTS]> {
     eprintln!("No weights file found at '{}'.", path.display());
     eprint!("Run optimization to generate one? [y/n] ");
     io::stderr().flush()?;
@@ -53,5 +53,5 @@ fn prompt_and_generate(path: &Path) -> io::Result<[f64; 16]> {
         ));
     }
 
-    optimize_weights(&OptimizeConfig::default(), path)
+    optimize_weights(&OptimizeConfig::default(), path).map(|result| result.weights)
 }

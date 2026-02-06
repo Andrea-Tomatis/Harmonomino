@@ -111,6 +111,12 @@ impl Tetromino {
     #[must_use]
     pub fn random() -> Self {
         let mut rng = rand::rng();
+        Self::random_with_rng(&mut rng)
+    }
+
+    /// Returns a random tetromino using the provided RNG.
+    #[must_use]
+    pub fn random_with_rng<R: Rng + ?Sized>(rng: &mut R) -> Self {
         Self::ALL[rng.random_range(0..Self::ALL.len())]
     }
 

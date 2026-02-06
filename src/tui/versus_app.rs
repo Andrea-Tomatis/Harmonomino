@@ -6,6 +6,7 @@ use ratatui::crossterm::event::KeyCode;
 use crate::agent::ScoringMode;
 use crate::agent::find_best_move;
 use crate::game::{Board, GamePhase, GameState, MoveResult, Tetromino};
+use crate::weights;
 
 use super::event_loop::TuiApp;
 use super::versus_ui;
@@ -16,7 +17,7 @@ pub struct VersusApp {
     pub agent_board: Board,
     pub agent_rows_cleared: u32,
     pub agent_game_over: bool,
-    pub weights: [f64; 16],
+    pub weights: [f64; weights::NUM_WEIGHTS],
     pub scoring_mode: ScoringMode,
     pub last_tick: Instant,
     pub tick_rate: Duration,
@@ -27,7 +28,7 @@ pub struct VersusApp {
 impl VersusApp {
     /// Creates a new `VersusApp` with the given weights and scoring mode.
     #[must_use]
-    pub fn new(weights: [f64; 16], scoring_mode: ScoringMode) -> Self {
+    pub fn new(weights: [f64; weights::NUM_WEIGHTS], scoring_mode: ScoringMode) -> Self {
         Self {
             user_game: GameState::new(),
             agent_board: Board::new(),
@@ -68,7 +69,7 @@ impl VersusApp {
             piece,
             &self.weights,
             self.scoring_mode,
-            16,
+            weights::NUM_WEIGHTS,
         ) {
             Some((board, rows_cleared)) => {
                 self.agent_board = board;
