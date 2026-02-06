@@ -1,3 +1,7 @@
+#import "@preview/intextual:0.1.1": *
+
+#let score-eq = $V(s) = sum_(i=1)^n w_i dot f_i (s)$
+
 = Introduction
 
 Tetris, the iconic puzzle video game created by Alexey Pajitnov in 1984, has attracted
@@ -30,7 +34,7 @@ function_: a linear combination of weighted board features that scores each poss
 placement. Given $n$ feature functions $f_i (s)$ mapping a board state $s$ to a real value,
 and corresponding weights $w_i$, the agent selects the move that maximizes
 
-$ V(s) = sum_(i=1)^n w_i dot f_i (s) $
+$ #score-eq . $ <eq-score>
 
 The optimization problem then reduces to finding the weight vector $bold(w)$ that yields the
 highest number of cleared rows @Romero2011TetrisHarmonySearch.
@@ -78,9 +82,9 @@ size 5, their system demonstrated that HS can efficiently discover high-quality 
 // TODO: incorportate better in rest of text
 This work is guided by three research questions:
 
-- *RQ1:* Can metaheuristic optimization converge to high-quality Tetris agents using only board-state features?
-- *RQ2:* How does Harmony Search compare to Cross-Entropy Search under identical feature sets and simulation conditions?
-- *RQ3:* What structure exists in the learned weight space --- are certain features consistently emphasized?
+- *RQ1:* Can metaheuristic optimization converge to high-quality Tetris agents using only board-state features? <rq1>
+- *RQ2:* How does Harmony Search compare to Cross-Entropy Search under identical feature sets and simulation conditions? <rq2>
+- *RQ3:* What structure exists in the learned weight space --- are certain features consistently emphasized? <rq3>
 
 == Contributions
 
@@ -88,7 +92,6 @@ This work presents _Harmonomino_, a Tetris agent optimization system implemented
 Our contributions are:
 that builds upon and extends the approach of #cite(<Romero2011TetrisHarmonySearch>, form: "prose").
 
-// FIX: current font doesn't support *bold* text.
 + *Reimplementation and refinement.* We reimplement the Harmony Search-based Tetris
   optimizer in Rust for improved performance. Of the original 19 feature functions, we retain
   16 that depend solely on the board state, removing three (removed rows, landing height,
