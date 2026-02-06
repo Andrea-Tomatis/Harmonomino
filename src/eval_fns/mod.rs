@@ -51,20 +51,19 @@ pub fn get_all_evaluators() -> Vec<Box<dyn EvalFn>> {
     ]
 }
 
-/// Calculates the weighted sum of all heuristics.
+/// Calculates the weighted sum of the first `n_weights` heuristics.
+#[must_use]
+pub fn calculate_weighted_score_n(board: &Board, weights: &[f64; 16], n_weights: usize) -> f64 {
+    get_all_evaluators()
+        .iter()
+        .zip(weights.iter())
+        .take(n_weights)
+        .map(|(evaluator, &weight)| f64::from(evaluator.eval(board)) * weight)
+        .sum()
+}
+
+/// Calculates the weighted sum of all 16 heuristics.
 #[must_use]
 pub fn calculate_weighted_score(board: &Board, weights: &[f64; 16]) -> f64 {
-    let evaluators = get_all_evaluators();
-    let mut total_score = 0.0;
-
-    for (i, evaluator) in evaluators.iter().enumerate() {
-        //Run the specific heuristic
-        let raw_score = evaluator.eval(board); // returns u8 (0-255)
-
-        // Multiply by the gene weight
-        // We cast u8 to f64 for the math
-        total_score += f64::from(raw_score) * weights[i];
-    }
-
-    total_score
+    calculate_weighted_score_n(board, weights, 16)
 }

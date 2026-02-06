@@ -1,7 +1,7 @@
 use std::fmt;
 use std::str::FromStr;
 
-use crate::eval_fns::calculate_weighted_score;
+use crate::eval_fns::calculate_weighted_score_n;
 use crate::game::{Board, FallingPiece, GameState, Tetromino};
 use rayon::prelude::*;
 
@@ -53,6 +53,7 @@ pub fn find_best_move(
     piece: Tetromino,
     weights: &[f64; 16],
     scoring_mode: ScoringMode,
+    n_weights: usize,
 ) -> Option<(Board, u32)> {
     let base_piece = FallingPiece::spawn(piece);
 
@@ -81,10 +82,10 @@ pub fn find_best_move(
                     let score = match scoring_mode {
                         ScoringMode::Full => f64::from(current_rows_cleared).mul_add(
                             ROWS_CLEARED_WEIGHT,
-                            calculate_weighted_score(&possible_board, weights),
+                            calculate_weighted_score_n(&possible_board, weights, n_weights),
                         ),
                         ScoringMode::HeuristicsOnly => {
-                            calculate_weighted_score(&possible_board, weights)
+                            calculate_weighted_score_n(&possible_board, weights, n_weights)
                         }
                         ScoringMode::RowsOnly => f64::from(current_rows_cleared),
                     };
@@ -112,6 +113,7 @@ pub struct Simulator {
     pub weights: [f64; 16],
     pub max_length: usize,
     pub scoring_mode: ScoringMode,
+    pub n_weights: usize,
 }
 
 impl Simulator {
@@ -121,7 +123,15 @@ impl Simulator {
             weights,
             max_length,
             scoring_mode,
+            n_weights: 16,
         }
+    }
+
+    /// Sets the number of evaluation functions to use (default: 16).
+    #[must_use]
+    pub const fn with_n_weights(mut self, n: usize) -> Self {
+        self.n_weights = n;
+        self
     }
 
     /// Simulates a Tetris game using parallelized move evaluation.
@@ -135,7 +145,13 @@ impl Simulator {
         for _ in 0..self.max_length {
             let piece = Tetromino::random();
 
-            match find_best_move(&game.board, piece, &self.weights, self.scoring_mode) {
+            match find_best_move(
+                &game.board,
+                piece,
+                &self.weights,
+                self.scoring_mode,
+                self.n_weights,
+            ) {
                 Some((board, rows_cleared)) => {
                     game = GameState::from_board(board);
                     total_rows_cleared += rows_cleared;

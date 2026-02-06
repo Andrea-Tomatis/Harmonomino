@@ -63,7 +63,13 @@ impl VersusApp {
         if self.agent_game_over {
             return;
         }
-        match find_best_move(&self.agent_board, piece, &self.weights, self.scoring_mode) {
+        match find_best_move(
+            &self.agent_board,
+            piece,
+            &self.weights,
+            self.scoring_mode,
+            16,
+        ) {
             Some((board, rows_cleared)) => {
                 self.agent_board = board;
                 self.agent_rows_cleared += rows_cleared;

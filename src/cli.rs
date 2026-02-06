@@ -20,6 +20,12 @@ impl Cli {
         self.args.iter().any(|a| a == "--help" || a == "-h")
     }
 
+    /// Returns `true` if `flag` is present (for boolean flags with no value).
+    #[must_use]
+    pub fn has_flag(&self, flag: &str) -> bool {
+        self.args.iter().any(|a| a == flag)
+    }
+
     /// Returns the raw string value following `flag`, if present.
     #[must_use]
     pub fn get(&self, flag: &str) -> Option<&str> {

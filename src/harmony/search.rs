@@ -17,6 +17,9 @@ pub struct OptimizeConfig {
     pub sim_length: usize,
     pub bounds: (f64, f64),
     pub scoring_mode: ScoringMode,
+    pub n_weights: usize,
+    pub averaged: bool,
+    pub averaged_runs: usize,
 }
 
 impl OptimizeConfig {
@@ -27,6 +30,8 @@ impl OptimizeConfig {
     pub const DEFAULT_BANDWIDTH: f64 = 0.1;
     pub const DEFAULT_SIM_LENGTH: usize = 1000;
     pub const DEFAULT_BOUNDS: (f64, f64) = (-1.0, 1.0);
+    pub const DEFAULT_N_WEIGHTS: usize = 16;
+    pub const DEFAULT_AVERAGED_RUNS: usize = 20;
 
     /// Returns a usage string with the current default values.
     #[must_use]
@@ -38,21 +43,33 @@ Usage: harmonomino [OPTIONS]
 Runs Harmony Search optimization to find optimal Tetris agent weights.
 
 Options:
+  --algorithm <ALG>     Algorithm: hsa, ce            [default: hsa]
   --memory-size <N>     Harmony memory size           [default: {}]
-  --iterations <N>      Number of HSA iterations      [default: {}]
+  --iterations <N>      Number of iterations          [default: {}]
   --accept-rate <F>     Memory consideration rate     [default: {}]
   --pitch-adj-rate <F>  Pitch adjustment rate         [default: {}]
   --bandwidth <F>       Pitch adjustment bandwidth    [default: {}]
   --sim-length <N>      Pieces per simulation game    [default: {}]
   --scoring-mode <MODE> Scoring: full, heuristics-only, rows-only [default: full]
+  --n-weights <N>       Number of eval functions      [default: {}]
+  --averaged            Average fitness over multiple runs
+  --averaged-runs <N>   Runs per averaged evaluation  [default: {}]
   --output <PATH>       Output weights file           [default: weights.txt]
-  --help                Print this help message",
+  --help                Print this help message
+
+Cross-Entropy Search options (--algorithm ce):
+  --n-samples <N>       Candidate samples per iteration [default: 50]
+  --n-elite <N>         Elite samples for distribution  [default: 10]
+  --initial-std-dev <F> Initial standard deviation      [default: 10.0]
+  --std-dev-floor <F>   Minimum standard deviation      [default: 0.01]",
             Self::DEFAULT_MEMORY_SIZE,
             Self::DEFAULT_ITERATIONS,
             Self::DEFAULT_ACCEPT_RATE,
             Self::DEFAULT_PITCH_ADJ_RATE,
             Self::DEFAULT_BANDWIDTH,
             Self::DEFAULT_SIM_LENGTH,
+            Self::DEFAULT_N_WEIGHTS,
+            Self::DEFAULT_AVERAGED_RUNS,
         )
     }
 }
@@ -68,6 +85,9 @@ impl Default for OptimizeConfig {
             sim_length: Self::DEFAULT_SIM_LENGTH,
             bounds: Self::DEFAULT_BOUNDS,
             scoring_mode: ScoringMode::default(),
+            n_weights: Self::DEFAULT_N_WEIGHTS,
+            averaged: false,
+            averaged_runs: Self::DEFAULT_AVERAGED_RUNS,
         }
     }
 }
@@ -89,12 +109,18 @@ pub fn optimize_weights(config: &OptimizeConfig, output: &Path) -> io::Result<[f
     );
 
     println!(
-        "Starting optimization ({} iterations)...",
-        config.iterations
+        "Starting HSA optimization ({} iterations, n_weights={}, averaged={})...",
+        config.iterations, config.n_weights, config.averaged,
     );
 
-    let (best_weights, best_score) =
-        solver.optimize(config.sim_length, config.bounds, config.scoring_mode);
+    let (best_weights, best_score) = solver.optimize(
+        config.sim_length,
+        config.bounds,
+        config.scoring_mode,
+        config.n_weights,
+        config.averaged,
+        config.averaged_runs,
+    );
 
     println!("Best fitness: {best_score:.5}");
     println!(
@@ -153,19 +179,40 @@ impl HarmonySearch {
         }
     }
 
-    /// TODO: Short docstring.
+    /// Runs the Harmony Search optimization loop.
     ///
     /// # Panics
     ///
     /// Panics if `fitness_mem` is empty at the end of optimization (happens only when `hm_mem_size` is 0).
+    #[allow(clippy::cast_precision_loss)]
     pub fn optimize(
         &mut self,
         sim_length: usize,
         bounds: (f64, f64),
         scoring_mode: ScoringMode,
+        n_weights: usize,
+        averaged: bool,
+        averaged_runs: usize,
     ) -> ([f64; 16], f64) {
         let mut rng = rand::rng();
         let (min_bound, max_bound) = bounds;
+
+        let evaluate = |weights: [f64; 16]| -> f64 {
+            if averaged {
+                let total: f64 = (0..averaged_runs)
+                    .map(|_| {
+                        let sim = Simulator::new(weights, sim_length, scoring_mode)
+                            .with_n_weights(n_weights);
+                        f64::from(sim.simulate_game())
+                    })
+                    .sum();
+                total / averaged_runs as f64
+            } else {
+                let sim =
+                    Simulator::new(weights, sim_length, scoring_mode).with_n_weights(n_weights);
+                f64::from(sim.simulate_game())
+            }
+        };
 
         self.harm_mem.clear();
         self.fitness_mem.clear();
@@ -177,9 +224,7 @@ impl HarmonySearch {
                 *val = rng.random_range(min_bound..=max_bound);
             }
             self.harm_mem.push(harmony);
-
-            let sim = Simulator::new(harmony, sim_length, scoring_mode);
-            self.fitness_mem.push(f64::from(sim.simulate_game()));
+            self.fitness_mem.push(evaluate(harmony));
         }
 
         // Optimization Loop
@@ -204,8 +249,7 @@ impl HarmonySearch {
                 }
             }
 
-            let sim: Simulator = Simulator::new(new_harmony, sim_length, scoring_mode);
-            let new_fitness: f64 = f64::from(sim.simulate_game());
+            let new_fitness = evaluate(new_harmony);
 
             println!("Iteration {cnt}: {new_fitness}");
 
@@ -214,7 +258,7 @@ impl HarmonySearch {
                 .fitness_mem
                 .iter()
                 .enumerate()
-                .min_by(|a, b| a.1.total_cmp(b.1)) // NOTE: changed to total_cmp to avaid panic on NaN
+                .min_by(|a, b| a.1.total_cmp(b.1))
                 .expect("Fitness memory should not be empty");
 
             if new_fitness > worst_fitness {
@@ -228,7 +272,7 @@ impl HarmonySearch {
             .fitness_mem
             .iter()
             .enumerate()
-            .max_by(|a, b| a.1.total_cmp(b.1)) // NOTE: changed to total_cmp to avoid panic on NaN
+            .max_by(|a, b| a.1.total_cmp(b.1))
             .expect("Fitness memory should not be empty");
 
         (self.harm_mem[best_idx], best_fitness)
