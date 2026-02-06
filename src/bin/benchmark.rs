@@ -1,4 +1,5 @@
 use harmonomino::agent::simulator::Simulator;
+use harmonomino::harmony::CrossEntropySearch;
 /// Benchark Script for Harmony Search Optimization Algorithm
 ///
 /// This benchmark script evaluates the performance of the Harmony Search optimization algorithm
@@ -8,8 +9,6 @@ use harmonomino::harmony::HarmonySearch;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::time::Instant;
-use harmonomino::harmony::CrossEntropySearch;
-
 
 fn benchmark_pitch_adjustment_rate() {
     println!("Benchmarking Pitch Adjustment Rate...\n");
@@ -82,7 +81,8 @@ fn compare_harmony_and_crossentropy() {
     println!("Comparing Harmony Search and CrossEntropy...\n");
 
     let mut file = BufWriter::new(
-        File::create("./results/comparison_harmony_crossentropy.csv").expect("Unable to create file"),
+        File::create("./results/comparison_harmony_crossentropy.csv")
+            .expect("Unable to create file"),
     );
 
     writeln!(file, "Method,Iteration,Score,Time").expect("Unable to write header");
@@ -131,7 +131,7 @@ fn compare_harmony_and_crossentropy() {
 
         write!(file, "{:.5}, {:.5},", ce_best_score, crossentropy_time)
             .expect("Unable to write data");
-    
+
         // Harmony Search light version
         let mut harmony_solver = HarmonySearch::new(
             5,    // Memory Size
@@ -145,8 +145,7 @@ fn compare_harmony_and_crossentropy() {
         let (_, harmony_score) = harmony_solver.optimize(500, (-1.0, 1.0), false, 16);
         let harmony_time = start.elapsed().as_secs_f64();
 
-        writeln!(file, "{:.5}, {:.5}", harmony_score, harmony_time)
-            .expect("Unable to write data");
+        writeln!(file, "{:.5}, {:.5}", harmony_score, harmony_time).expect("Unable to write data");
     }
 }
 
