@@ -1,13 +1,9 @@
 #import "@preview/elsearticle:2.0.0": *
 
-// See: https://isis.tu-berlin.de/pluginfile.php/3774882/mod_resource/content/1/Project-Report-Instruction.pdf
-
-#let small_cite(url) = footnote([#link(url, url)])
-
-#let abstract = lorem(100)
+// NOTE: See https://isis.tu-berlin.de/pluginfile.php/3774882/mod_resource/content/1/Project-Report-Instruction.pdf
 
 #show: elsearticle.with(
-  title: "Harmonomino: Tetris Agent Optimization using Harmony Search Agent written in Rust",
+  title: "Harmonomino: Tetris Agent Optimization using Stachastic Local Search Heuristics written in Rust",
   authors: (
     (
       name: "E. Cerpac",
@@ -21,7 +17,6 @@
     ),
   ),
   institutions: ("a": [Technische Universität Berlin, Berlin, Germany]),
-  abstract: abstract,
   keywords: (
     // TODO: maybe to many keywords?
     "Harmony Search Algorithm",
@@ -31,19 +26,17 @@
     "Genetic Algorithms",
   ),
   format: "3p", // (review, 1p, 3p, 5p, final)
-  numcol: 2,
+  numcol: 1,
   // line-numbering: true,
 )
 
-= Introduction
-
-Based on work by #cite(<Romero2011TetrisHarmonySearch>, form: "prose").
 
 #include "sections/introduction.typ"
+#include "sections/methodology.typ"
+#include "sections/results.typ"
+#include "sections/conclusion_and_discussion.typ"
 
-= Conclusion
-
-#include "sections/conclusion.typ"
-
-
+// TODO: make bracket link in shape [LH32]
 #bibliography("refs.bib", style: "ieee")
+
+// TODO: add disclaimer about AI tools
