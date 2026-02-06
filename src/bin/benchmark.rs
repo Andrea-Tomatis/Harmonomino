@@ -7,6 +7,9 @@ use harmonomino::agent::simulator::Simulator;
 use harmonomino::harmony::HarmonySearch;
 use std::fs::File;
 use std::io::{BufWriter, Write};
+use std::time::Instant;
+use harmonomino::harmony::CrossEntropySearch;
+
 
 fn benchmark_pitch_adjustment_rate() {
     println!("Benchmarking Pitch Adjustment Rate...\n");
@@ -72,6 +75,78 @@ fn benchmark_bandwidth() {
 
         let (_, best_score) = solver.optimize(500, (-1.0, 1.0), false, 16);
         writeln!(file, "{:.2},{:.5}", bandwidth, best_score).expect("Unable to write data");
+    }
+}
+
+fn compare_harmony_and_crossentropy() {
+    println!("Comparing Harmony Search and CrossEntropy...\n");
+
+    let mut file = BufWriter::new(
+        File::create("./results/comparison_harmony_crossentropy.csv").expect("Unable to create file"),
+    );
+
+    writeln!(file, "Method,Iteration,Score,Time").expect("Unable to write header");
+
+    for i in 1..=10 {
+        // Harmony Search
+        let mut harmony_solver = HarmonySearch::new(
+            5,    // Memory Size
+            500,  // Iterations
+            0.95, // Accept Rate
+            0.99, // Pitch Adjustment Rate
+            0.1,  // Bandwidth
+        );
+
+        let start = Instant::now();
+        let (_, harmony_score) = harmony_solver.optimize(500, (-1.0, 1.0), false, 16);
+        let harmony_time = start.elapsed().as_secs_f64();
+
+        write!(file, "{}, {:.5}, {:.5},", i, harmony_score, harmony_time)
+            .expect("Unable to write data");
+
+        // CrossEntropy
+        let mut ce_solver = CrossEntropySearch::new(
+            15,  // Population Size
+            2,   // Elite Fraction
+            100, // Iterations
+        );
+
+        let start = Instant::now();
+        let (_, ce_best_score) = ce_solver.optimize(500, 16);
+        let crossentropy_time = start.elapsed().as_secs_f64();
+
+        write!(file, "{:.5}, {:.5},", ce_best_score, crossentropy_time)
+            .expect("Unable to write data");
+
+        // CrossEntropy light version
+        let mut ce_solver = CrossEntropySearch::new(
+            10,  // Population Size
+            2,   // Elite Fraction
+            100, // Iterations
+        );
+
+        let start = Instant::now();
+        let (_, ce_best_score) = ce_solver.optimize(500, 16);
+        let crossentropy_time = start.elapsed().as_secs_f64();
+
+        write!(file, "{:.5}, {:.5},", ce_best_score, crossentropy_time)
+            .expect("Unable to write data");
+    
+        // Harmony Search light version
+        let mut harmony_solver = HarmonySearch::new(
+            5,    // Memory Size
+            200,  // Iterations
+            0.95, // Accept Rate
+            0.99, // Pitch Adjustment Rate
+            0.1,  // Bandwidth
+        );
+
+        let start = Instant::now();
+        let (_, harmony_score) = harmony_solver.optimize(500, (-1.0, 1.0), false, 16);
+        let harmony_time = start.elapsed().as_secs_f64();
+
+        writeln!(file, "{:.5}, {:.5}", harmony_score, harmony_time)
+            .expect("Unable to write data");
     }
 }
 
@@ -150,8 +225,9 @@ fn run_optimization_multiple_times() {
 
 fn main() {
     //benchmark_pitch_adjustment_rate();
-    benchmark_max_iterations(true);
+    //benchmark_max_iterations(true);
     //benchmark_bandwidth();
     //simulate_games_with_optimized_weights();
     //run_optimization_multiple_times();
+    compare_harmony_and_crossentropy();
 }
