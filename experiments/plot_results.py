@@ -18,6 +18,24 @@ CONFIG_PATH = BASE_DIR / "config.toml"
 
 WEIGHT_COLS = [f"w{i}" for i in range(1, 17)]
 
+FEATURE_NAMES: dict[str, str] = {
+    "w1": "Pile Height", "w2": "Holes", "w3": "Connected Holes",
+    "w4": "Altitude Diff", "w5": "Max Well Depth", "w6": "Sum of Wells",
+    "w7": "Blocks", "w8": "Weighted Blocks", "w9": "Row Transitions",
+    "w10": "Col Transitions", "w11": "Highest Hole", "w12": "Blocks Above Highest",
+    "w13": "Potential Rows", "w14": "Smoothness", "w15": "Row Holes",
+    "w16": "Hole Depth",
+}
+
+FEATURE_CATEGORIES: dict[str, list[str]] = {
+    "Height/Surface": ["w1", "w4", "w14"],
+    "Holes": ["w2", "w3", "w11", "w15", "w16"],
+    "Wells": ["w5", "w6"],
+    "Transitions": ["w9", "w10"],
+    "Blocks": ["w7", "w8", "w12"],
+    "Rows": ["w13"],
+}
+
 
 def load_config() -> dict:
     with CONFIG_PATH.open("rb") as f:
@@ -144,7 +162,7 @@ def plot_distributions(data: dict[str, list[int]], plots_dir: Path) -> None:
     values = [data[label] for label in labels]
 
     plt.figure(figsize=(8, 4))
-    plt.boxplot(values, labels=labels, showmeans=True)
+    plt.boxplot(values, tick_labels=labels, showmeans=True)
     plt.ylabel("Rows cleared")
     plt.xticks(rotation=30, ha="right")
     plt.tight_layout()
@@ -203,10 +221,12 @@ def plot_weight_distributions(plots_dir: Path) -> None:
     else:
         axes[1].axis("off")
 
-    axes[1].set_xlabel("Weight index")
+    feature_labels = [FEATURE_NAMES.get(f"w{i}", f"w{i}") for i in range(1, n_weights + 1)]
+    axes[1].set_xlabel("Feature")
     for ax in axes:
         ax.set_ylabel("Weight value")
         ax.set_xticks(range(1, n_weights + 1))
+        ax.set_xticklabels(feature_labels, rotation=45, ha="right", fontsize=7)
 
     plt.tight_layout()
     plt.savefig(plots_dir / "weights_distribution.pdf")
@@ -305,11 +325,14 @@ def plot_weight_mean_std(df: pd.DataFrame, plots_dir: Path) -> None:
     means = df[cols].mean()
     stds = df[cols].std()
 
+    labels = [FEATURE_NAMES.get(c, c) for c in cols]
+
     plt.figure(figsize=(12, 6))
-    plt.bar(cols, means, yerr=stds, capsize=5, color="skyblue", edgecolor="navy", alpha=0.8)
-    plt.xlabel("Weight Columns")
+    plt.bar(labels, means, yerr=stds, capsize=5, color="skyblue", edgecolor="navy", alpha=0.8)
+    plt.xticks(rotation=45, ha="right")
+    plt.xlabel("Feature")
     plt.ylabel("Average Value")
-    plt.title("Mean and Standard Deviation for w1 through w16")
+    plt.title("Mean and Standard Deviation of Learned Weights")
     plt.grid(axis="y", linestyle="--", alpha=0.7)
     plt.tight_layout()
     plt.savefig(plots_dir / "weight_mean_std.pdf")
@@ -337,15 +360,16 @@ def plot_weight_histograms(df: pd.DataFrame, plots_dir: Path) -> None:
         return
 
     fig, axes = plt.subplots(nrows=4, ncols=4, figsize=(16, 14))
-    fig.suptitle("Weight Distributions: w1 through w16", fontsize=22, fontweight="bold")
+    fig.suptitle("Weight Distributions by Feature", fontsize=22, fontweight="bold")
 
     axes_flat = axes.flatten()
 
     for i, col in enumerate(cols):
         if i >= len(axes_flat):
             break
+        label = FEATURE_NAMES.get(col, col)
         sns.histplot(df[col], kde=True, ax=axes_flat[i], color="royalblue", bins=20)
-        axes_flat[i].set_title(f"Distribution of {col}", fontsize=12)
+        axes_flat[i].set_title(f"{label} ({col})", fontsize=12)
         axes_flat[i].set_xlabel("")
         axes_flat[i].set_ylabel("Frequency")
 
@@ -435,6 +459,72 @@ def plot_pca(df: pd.DataFrame, plots_dir: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Feature-category grouped plot
+# ---------------------------------------------------------------------------
+
+
+def plot_weight_categories(df: pd.DataFrame, plots_dir: Path) -> None:
+    """Grouped bar chart of mean weights, colored and grouped by feature category."""
+    cols = [c for c in WEIGHT_COLS if c in df.columns]
+    if not cols:
+        return
+
+    means = df[cols].mean()
+    stds = df[cols].std()
+
+    # Build ordered list of weights grouped by category.
+    ordered_weights: list[str] = []
+    category_labels: list[str] = []
+    colors: list[str] = []
+
+    palette = {
+        "Height/Surface": "#4c72b0",
+        "Holes": "#dd8452",
+        "Wells": "#55a868",
+        "Transitions": "#c44e52",
+        "Blocks": "#8172b3",
+        "Rows": "#937860",
+    }
+
+    for cat, members in FEATURE_CATEGORIES.items():
+        for w in members:
+            if w in cols:
+                ordered_weights.append(w)
+                category_labels.append(cat)
+                colors.append(palette.get(cat, "gray"))
+
+    x_labels = [FEATURE_NAMES.get(w, w) for w in ordered_weights]
+    y = [float(means[w]) for w in ordered_weights]
+    yerr = [float(stds[w]) for w in ordered_weights]
+    x = np.arange(len(ordered_weights))
+
+    fig, ax = plt.subplots(figsize=(14, 5))
+    ax.bar(x, y, yerr=yerr, capsize=4, color=colors, edgecolor="black", alpha=0.85)
+    ax.set_xticks(x)
+    ax.set_xticklabels(x_labels, rotation=45, ha="right", fontsize=8)
+    ax.set_ylabel("Mean weight value")
+    ax.set_title("Learned Weights by Feature Category")
+    ax.axhline(0, color="black", linewidth=0.5)
+    ax.grid(axis="y", linestyle="--", alpha=0.5)
+
+    # Add category separators and legend patches.
+    from matplotlib.patches import Patch
+    legend_handles = []
+    prev_cat = None
+    for i, cat in enumerate(category_labels):
+        if prev_cat is not None and cat != prev_cat:
+            ax.axvline(i - 0.5, color="grey", linewidth=0.8, linestyle=":")
+        if cat != prev_cat:
+            legend_handles.append(Patch(facecolor=palette.get(cat, "gray"), label=cat))
+        prev_cat = cat
+
+    ax.legend(handles=legend_handles, loc="upper left", fontsize=8)
+    fig.tight_layout()
+    fig.savefig(plots_dir / "weight_categories.pdf")
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -474,6 +564,7 @@ def main() -> None:
     opt_df = load_optimized_weights()
     if opt_df is not None:
         plot_weight_mean_std(opt_df, plots_dir)
+        plot_weight_categories(opt_df, plots_dir)
         plot_correlation_heatmap(opt_df, plots_dir)
         plot_weight_histograms(opt_df, plots_dir)
         plot_pairwise_distances(opt_df, plots_dir)
