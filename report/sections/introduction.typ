@@ -74,11 +74,19 @@ only two parents @Geem2001HarmonySearch @Yang2009HSMetaheuristic. // TODO: bette
 Tetris weight optimization problem. Using 19 board feature functions and a harmony memory of
 size 5, their system demonstrated that HS can efficiently discover high-quality weight configurations, achieving a spawned-pieces-to-cleared-rows ratio approaching the theoretical optimum of 2.5.
 
+== Research Questions
+// TODO: incorportate better in rest of text
+This work is guided by three research questions:
+
+- *RQ1:* Can metaheuristic optimization converge to high-quality Tetris agents using only board-state features?
+- *RQ2:* How does Harmony Search compare to Cross-Entropy Search under identical feature sets and simulation conditions?
+- *RQ3:* What structure exists in the learned weight space --- are certain features consistently emphasized?
+
 == Contributions
 
 This work presents _Harmonomino_, a Tetris agent optimization system implemented in Rust
+Our contributions are:
 that builds upon and extends the approach of #cite(<Romero2011TetrisHarmonySearch>, form: "prose").
-Our contributions are as follows:
 
 // FIX: current font doesn't support *bold* text.
 + *Reimplementation and refinement.* We reimplement the Harmony Search-based Tetris
