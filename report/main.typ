@@ -3,7 +3,7 @@
 // NOTE: See https://isis.tu-berlin.de/pluginfile.php/3774882/mod_resource/content/1/Project-Report-Instruction.pdf
 
 #show: elsearticle.with(
-  title: "Harmonomino: Tetris Agent Optimization using Stachastic Local Search Heuristics written in Rust",
+  title: "Harmonomino: Tetris Agent Optimization using Stochastic Local Search Heuristics written in Rust",
   authors: (
     (
       name: "E. Cerpac",
