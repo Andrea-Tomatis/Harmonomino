@@ -1,3 +1,4 @@
+#import "@preview/zero:0.6.1": num
 #import "introduction.typ": score-eq
 #import "../constants.typ": n-features, params
 #import "@preview/booktabs:0.0.4": *
@@ -48,9 +49,9 @@ in-game context (we exclude removed rows, landing height, and eroded pieces).
 // Or maybe instead, we reference @sec-method-hsa from the introduction. (Yes, I like that)
 
 The optimization framework utilizes a Harmony Search Algorithm (HSA) to iteratively refine the agent's heuristic weights, mimicking the process of musical improvisation to find an optimal "harmony" or set of parameters.
-The process begins by initializing a Harmony Memory (HM)—a population of weight vectors—where each individual is evaluated using the simulation logic described previously. To account for the inherent randomness of piece sequences, the framework can be configured to average the performance metrics over multiple stochastic runs, ensuring that the resulting weight sets are robust rather than merely lucky.
+The process begins by initializing a Harmony Memory (HM), a population of weight vectors, where each individual is evaluated using the simulation logic described previously. To account for the inherent randomness of piece sequences, the framework can be configured to average the performance metrics over multiple stochastic runs, ensuring that the resulting weight sets are robust rather than merely lucky.
 
-During each optimization iteration, the algorithm generates a new candidate solution by traversing the high-dimensional weight space through three distinct decision-making mechanisms. First, memory consideration allows the system to inherit values from the existing population, preserving successful traits. Second, pitch adjustment applies a localized perturbation—governed by a bandwidth parameter—to these inherited values, enabling a fine-tuned local search around known high-performing regions. Finally, random selection introduces entirely new values from the global bounds, maintaining diversity and preventing the search from becoming trapped in local optima.
+During each optimization iteration, the algorithm generates a new candidate solution by traversing the high-dimensional weight space through three distinct decision-making mechanisms. First, memory consideration allows the system to inherit values from the existing population, preserving successful traits. Second, pitch adjustment applies a localized perturbation, governed by a bandwidth parameter, to these inherited values, enabling a fine-tuned local search around known high-performing regions. Finally, random selection introduces entirely new values from the global bounds, maintaining diversity and preventing the search from becoming trapped in local optima.
 
 The effectiveness of each generated candidate is assessed against the current population; if the newly generated candidate produces a score superior to the weakest member of the current memory, the inferior harmony is discarded and replaced. This continuous refinement loop persists until the algorithm reaches a user-defined convergence target, exhausts its iteration budget, or triggers an early-stopping condition if no significant improvement is observed over a specific duration. By managing this evolving population of strategies, the system effectively automates the discovery of complex weight configurations that maximize the agent's long-term survival and clearing efficiency.
 // TODO: include HSA pseudo-code/graph
@@ -58,8 +59,9 @@ The effectiveness of each generated candidate is assessed against the current po
 HSA maintains a harmony memory (HM) of candidate weight vectors. New candidates are created
 by selecting values from HM with probability $r_"accept"$, applying pitch adjustment with
 probability $r_"pa"$, or sampling randomly otherwise. The worst candidate in HM is replaced
-if a better solution is found. Unless stated otherwise, we use: HM size #params.hsa_memory_size, #params.hsa_iterations iterations,
+if a better solution is found. Unless stated otherwise, we use: HM size #params.hsa_memory_size, up to #params.hsa_iterations iterations,
 $r_"accept" = #params.hsa_accept_rate$, $r_"pa" = #params.hsa_pitch_adj_rate$, and bandwidth #params.hsa_bandwidth.
+HSA does not employ early stopping and always exhausts its iteration budget.
 
 == Cross-Entropy Search (CES) Algorithm <sec-method-ces>
 
@@ -71,13 +73,18 @@ To prevent the search from collapsing prematurely into a single point, a standar
 
 CES models weights with a multivariate Gaussian. Each iteration samples $N$ candidates,
 selects the top $N_"elite"$, and updates the mean and variance from the elite set. We use
-$N=#params.ces_n_samples$, $N_"elite" = #params.ces_n_elite$, #params.ces_iterations iterations, an initial standard deviation of #params.ces_initial_std_dev, and a
-minimum standard deviation floor of #params.ces_std_dev_floor.
+$N=#params.ces_n_samples$, $N_"elite" = #params.ces_n_elite$, up to #params.ces_iterations iterations, an initial standard deviation of #params.ces_initial_std_dev, and a
+minimum standard deviation floor of #params.ces_std_dev_floor. CES employs early stopping:
+optimization terminates when the best fitness reaches or exceeds a target score of
+#params.ces_early_stop_target, allowing seeds that converge quickly to finish well before
+the iteration budget is exhausted.
 
 == Experimental Protocol
 
-We run #params.training_seeds training seeds for each optimizer with a simulation length of #params.training_sim_length pieces. For
+We run #params.training_seeds training seeds for each optimizer with a simulation length of #params.training_sim_length pieces and a
+maximum of #params.hsa_iterations iterations per seed. CES may terminate early when its
+fitness target is reached; HSA always exhausts its full iteration budget. For
 evaluation we use #params.eval_seeds fixed seeds with a simulation length of #params.eval_sim_length pieces. As a baseline we
 evaluate #params.random_weights_count random weight vectors sampled uniformly from $[-1, 1]$.
 We report mean, median, standard deviation, and 95% confidence intervals of cleared rows,
-plus convergence and weight-distribution plots.
+plus convergence, early-stopping, and weight-distribution plots.

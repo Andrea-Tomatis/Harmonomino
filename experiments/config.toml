@@ -10,7 +10,7 @@ sim_length = 2000
 
 [hsa]
 memory_size = 5
-iterations = 500
+iterations = 100
 accept_rate = 0.95
 pitch_adj_rate = 0.99
 bandwidth = 0.1
@@ -23,7 +23,7 @@ averaged_runs = 20
 seeds = [0, 1, 2]
 n_samples = 50
 n_elite = 10
-iterations = 200
+iterations = 100
 sim_length = 1000
 n_weights = 16
 averaged = false
