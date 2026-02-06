@@ -1,6 +1,7 @@
 #import "@preview/intextual:0.1.1": *
+#import "../constants.typ": n-features
 
-#let score-eq = $V(s) = sum_(i=1)^n w_i dot f_i (s)$
+#let score-eq = $V(s) = sum_(i=1)^#n-features w_i dot f_i (s)$
 
 = Introduction
 

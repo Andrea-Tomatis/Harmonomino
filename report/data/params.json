@@ -1,0 +1,21 @@
+{
+  "n_features": 16,
+  "training_seeds": 10,
+  "training_sim_length": 1000,
+  "eval_seeds": 30,
+  "eval_sim_length": 2000,
+  "hsa_memory_size": 5,
+  "hsa_iterations": 500,
+  "hsa_accept_rate": 0.95,
+  "hsa_pitch_adj_rate": 0.99,
+  "hsa_bandwidth": 0.1,
+  "ces_n_samples": 50,
+  "ces_n_elite": 10,
+  "ces_iterations": 200,
+  "ces_initial_std_dev": 10.0,
+  "ces_std_dev_floor": 0.01,
+  "random_weights_count": 30,
+  "mass_optimize_count": 30,
+  "high_variance_threshold": 0.6,
+  "low_variance_threshold": 0.3
+}
