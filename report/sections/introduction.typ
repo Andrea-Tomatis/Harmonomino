@@ -7,7 +7,7 @@
 
 Tetris, the iconic puzzle video game created by Alexey Pajitnov in 1984, has attracted
 substantial interest from the artificial intelligence and optimization research communities.
-A Tetromino is a geometric shape composed of four squares connected orthogonally (i.e. at the edges and not the corners)  #cite(<Golomb1994Polyominoes>,form: "prose"), and in Tetris, a sequence of these pieces falls from the top of a $10 × 20$ game board.
+A Tetromino is a geometric shape composed of four squares connected orthogonally (i.e. at the edges and not the corners)  #cite(<Golomb1994Polyominoes>, form: "prose"), and in Tetris, a sequence of these pieces falls from the top of a $10 × 20$ game board.
 The player must rotate and translate each piece to form complete horizontal rows, which are then cleared. The game
 terminates when the accumulated pieces prevent new pieces from entering the board, making
 the objective to clear as many rows as possible.
@@ -24,11 +24,11 @@ The immense complexity of Tetris is rooted in its state space, which encompasses
 
 This work is guided by three research questions, which align with the broader goals of understanding and improving metaheuristic optimization for Tetris:
 
-- *RQ1:* Can metaheuristic optimization converge to high-quality Tetris agents using only board-state features? 
+- *RQ1:* Can metaheuristic optimization converge to high-quality Tetris agents using only board-state features? <rq1>
 
-- *RQ2:* What structure exists in the learned weight space — are certain features consistently emphasized?
+- *RQ2:* What structure exists in the learned weight space; are certain features consistently emphasized? <rq2>
 
-- *RQ3:* How does Harmony Search compare to Cross-Entropy Search under identical feature sets and simulation conditions? 
+- *RQ3:* How does Harmony Search compare to Cross-Entropy Search under identical feature sets and simulation conditions? <rq3>
 
 //moved on top of "related work" section, since in the instruction it's speficfied that the question we want to answer comes before the literature review.
 == Related Work
@@ -60,8 +60,8 @@ premature convergence of the sampling distribution.
 // #cite(<Thiery2009CEImprovements>, form: "prose")
 // #cite(<Gabillon2013ADP>, form: "prose")
 // #cite(<Langenhoven2010SwarmTetris>, form: "prose")
-// 
-// At this point we are at half of the length of the paper 
+//
+// At this point we are at half of the length of the paper
 // so might want to keep this short.
 
 == The Harmony Search Algorithm
@@ -77,15 +77,7 @@ The Harmony Search (HS) algorithm maintains a harmony memory (HM), a population 
 
 #cite(<Romero2011TetrisHarmonySearch>, form: "prose") were the first to apply Harmony Search to the
 Tetris weight optimization problem. Using 19 board feature functions and a harmony memory of
-size 5, their system demonstrated that HS can efficiently discover high-quality weight configurations, achieving a spawned-pieces-to-cleared-rows ratio approaching the theoretical optimum of 2.5.
-
-== Research Questions
-// TODO: incorportate better in rest of text
-This work is guided by three research questions:
-
-- *RQ1:* Can metaheuristic optimization converge to high-quality Tetris agents using only board-state features?
-- *RQ2:* How does Harmony Search compare to Cross-Entropy Search under identical feature sets and simulation conditions?
-- *RQ3:* What structure exists in the learned weight space --- are certain features consistently emphasized?
+size 5, their system demonstrated that HS can efficiently discover high-quality weight configurations, achieving a spawned-pieces-to-cleared-rows ratio approaching the theoretical optimum of 2.5. Our specific parameterization and implementation details are described in @sec-method-hsa.
 
 == Contributions
 

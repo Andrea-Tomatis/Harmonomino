@@ -3,7 +3,7 @@
 #import "@preview/pillar:0.3.3": cols
 #import "../constants.typ": hv-weights, params, stable-weights, summary, ws
 
-// TODO: remove titles from plots
+// TODO: remove titles from plots and make them smaller (so the font is bigger)
 
 = Results
 
@@ -19,7 +19,7 @@ dramatically outperform the baseline: CES achieves a mean of #summary.ces.mean c
 rows (median #summary.ces.median) and HSA a mean of #summary.hsa.mean (median
 #summary.hsa.median), compared to #summary.random.mean for random weights.
 
-// TODO: make zero table
+// TODO: make zero table work
 #figure(
   scope: "parent",
   ztable(
@@ -70,6 +70,7 @@ CES edges out HSA in both mean and median, though the distributions overlap cons
 // TODO: update to standard min-max-std-mean plot or whatever it's called
 // Also add baseline
 #figure(
+  scope: "parent",
   image("../figures/fitness_over_iter.pdf"),
   caption: [Mean and best fitness across iterations for HSA and CES.],
 ) <fig-conv>
@@ -128,7 +129,17 @@ In contrast, several weights show high variance:
 deviations exceeding #num(params.high_variance_threshold). This indicates that multiple weight configurations achieve
 similar performance, and that the solution landscape admits a family of good solutions rather than a single optimum.
 
-// TODO: add correlation analysis of weights with heatmap
+#figure(
+  image("../figures/weight_correlation.pdf"),
+  caption: [Pairwise Pearson correlation of learned weights across all optimized runs.],
+) <fig-corr>
+
+@fig-corr shows the pairwise Pearson correlation between learned weights across all
+optimized runs. Most off-diagonal correlations are weak, indicating that the features
+capture largely independent aspects of board quality.
+// TODO: write better
+However, something something about opisite features in threes not being mapped.
+// TODO: comment on strong correlations in blocks above highest and pile height, and others.
 
 == Parameter Sensitivity
 

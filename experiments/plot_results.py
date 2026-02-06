@@ -423,11 +423,23 @@ def plot_weight_mean_std(df: pd.DataFrame, plots_dir: Path) -> None:
 
 def plot_correlation_heatmap(df: pd.DataFrame, plots_dir: Path) -> None:
     corr = df.corr(numeric_only=True)
+    labels = [FEATURE_NAMES.get(c, c) for c in corr.columns]
 
     sns.set_theme(style="white")
     plt.figure(figsize=(10, 8))
-    sns.heatmap(corr, cmap="coolwarm", vmin=-1, vmax=1, center=0, square=True, annot=False)
-    plt.title("Weight Correlation Matrix")
+    sns.heatmap(
+        corr,
+        xticklabels=labels,
+        yticklabels=labels,
+        cmap="coolwarm",
+        vmin=-1,
+        vmax=1,
+        center=0,
+        square=True,
+        annot=False,
+    )
+    plt.xticks(rotation=45, ha="right")
+    plt.yticks(rotation=0)
     plt.tight_layout()
     plt.savefig(plots_dir / "weight_correlation.pdf")
     plt.close()
