@@ -41,8 +41,7 @@ pub fn find_best_move(
                     let mut possible_board = board.with_piece(&rotated_piece);
                     let current_rows_cleared = possible_board.clear_full_rows();
 
-                    let score =
-                        calculate_weighted_score_n(&possible_board, weights, n_weights);
+                    let score = calculate_weighted_score_n(&possible_board, weights, n_weights);
 
                     if score > local_max_score {
                         local_max_score = score;

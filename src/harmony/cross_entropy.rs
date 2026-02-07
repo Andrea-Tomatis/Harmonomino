@@ -159,14 +159,8 @@ impl CrossEntropySearch {
                 for (w, normal) in weights.iter_mut().zip(normals.iter()) {
                     *w = normal.sample(rng);
                 }
-                let fitness = evaluate_weights(
-                    rng,
-                    weights,
-                    sim_length,
-                    n_weights,
-                    averaged,
-                    averaged_runs,
-                );
+                let fitness =
+                    evaluate_weights(rng, weights, sim_length, n_weights, averaged, averaged_runs);
                 candidates.push((weights, fitness));
             }
 
