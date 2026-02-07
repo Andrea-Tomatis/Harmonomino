@@ -20,19 +20,20 @@ These valid placements are explored across all possible combinations of rotation
 $ #score-eq , $
 where $f_i (s)$ are board heuristics and $w_i$ are learned weights. The move yielding the highest score is executed, updating the global game state before the next piece is generated. This cycle continues until the board reaches a terminal "game over" condition or a predefined maximum move limit is reached, providing a deterministic and high-performance methodology for assessing the efficacy of different heuristic weight configurations.
 
-The complete optimization pipeline (simulator + optimizer) is shown in @pipeline. Some additional text
+The complete optimization pipeline (simulator + optimizer) is shown in @pipeline. // TODO: Some additional text
 
+// FIX: this figure contains mistakes, and I don't understand it. Also pdf, svg or typst would be nicer.
 #figure(
   image("../figures/pipeline.png"),
   caption: [
+    // TODO: extend caption to explain the figure in more detail.
     Optimization pipeline.
   ],
 ) <pipeline>
 
 == Heuristic Feature Set
 
-We use #n-features board features, all computable from the current board state alone. They fall into
-six categories:
+We use #n-features board features, all computable from the current board state alone. They fall into six categories:
 
 // Two-column Typst table for features
 #table(
@@ -45,7 +46,7 @@ six categories:
   [*Rows*], [potential rows],
 )
 
-This feature set matches the subset used by #cite(<Romero2011TetrisHarmonySearch>, form: "prose") that does not require additional
+This feature set is a subset used by #cite(<Romero2011TetrisHarmonySearch>, form: "prose") that does not require additional
 in-game context (we exclude removed rows, landing height, and eroded pieces).
 
 == Harmony Search Algorithm (HSA) <sec-method-hsa>
@@ -59,9 +60,12 @@ The process begins by initializing a Harmony Memory (HM), a population of weight
 During each optimization iteration, the algorithm generates a new candidate solution by traversing the high-dimensional weight space through three distinct decision-making mechanisms. First, memory consideration allows the system to inherit values from the existing population, preserving successful traits. Second, pitch adjustment applies a localized perturbation, governed by a bandwidth parameter, to these inherited values, enabling a fine-tuned local search around known high-performing regions. Finally, random selection introduces entirely new values from the global bounds, maintaining diversity and preventing the search from becoming trapped in local optima.
 
 The effectiveness of each generated candidate is assessed against the current population; if the newly generated candidate produces a score superior to the weakest member of the current memory, the inferior harmony is discarded and replaced. This continuous refinement loop persists until the algorithm reaches a user-defined convergence target, exhausts its iteration budget, or triggers an early-stopping condition if no significant improvement is observed over a specific duration. By managing this evolving population of strategies, the system effectively automates the discovery of complex weight configurations that maximize the agent's long-term survival and clearing efficiency.
-// TODO: include HSA pseudo-code/graph
+#figure(
+  include "../figures/hsa_flowchart.typ",
+  caption: [Flowchart of the Harmony Search Algorithm (HSA). Each iteration generates a new candidate by choosing between memory consideration (with optional pitch adjustment) and random selection, then replaces the worst member if improved.],
+) <hsa-flowchart>
 
-HSA maintains a harmony memory (HM) of candidate weight vectors. New candidates are created
+The complete HSA procedure is illustrated in @hsa-flowchart. HSA maintains a harmony memory (HM) of candidate weight vectors. New candidates are created
 by selecting values from HM with probability $r_"accept"$, applying pitch adjustment with
 probability $r_"pa"$, or sampling randomly otherwise. The worst candidate in HM is replaced
 if a better solution is found. Unless stated otherwise, we use: HM size #params.hsa_memory_size, up to #params.hsa_iterations iterations,
@@ -83,6 +87,13 @@ minimum standard deviation floor of #params.ces_std_dev_floor. CES employs early
 optimization terminates when the best fitness reaches or exceeds a target score of
 #params.ces_early_stop_target, allowing seeds that converge quickly to finish well before
 the iteration budget is exhausted.
+
+The CES procedure is illustrated in @ces-flowchart.
+
+#figure(
+  include "../figures/ces_flowchart.typ",
+  caption: [Flowchart of the Cross-Entropy Search (CES) algorithm. The fully linear structure contrasts with HSA's branching mechanisms: each iteration samples, evaluates, selects elites, and updates the distribution parameters.],
+) <ces-flowchart>
 
 == Experimental Protocol
 
