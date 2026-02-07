@@ -1,0 +1,17 @@
+weight,feature_name,mean,std,stability_rank,high_variance
+w1,Pile Height,0.0401,0.6356,16,true
+w2,Holes,-0.3386,0.5544,11,false
+w3,Connected Holes,-0.1819,0.6296,15,true
+w4,Altitude Diff,0.2243,0.6262,14,true
+w5,Max Well Depth,-0.4668,0.4178,6,false
+w6,Sum of Wells,-0.4126,0.4103,5,false
+w7,Blocks,-0.1139,0.5698,12,false
+w8,Weighted Blocks,-0.5202,0.2868,3,false
+w9,Row Transitions,-0.7446,0.2748,1,false
+w10,Col Transitions,-0.4666,0.4760,7,false
+w11,Highest Hole,-0.0435,0.5165,9,false
+w12,Blocks Above Highest,0.5637,0.2819,2,false
+w13,Potential Rows,0.0246,0.6179,13,true
+w14,Smoothness,-0.1884,0.3618,4,false
+w15,Row Holes,-0.1272,0.5238,10,false
+w16,Hole Depth,-0.1820,0.4843,8,false

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0" default-locale="en-US">
+  <info>
+    <title>Alphanumeric IEEE</title>
+    <id>alpha-ieee</id>
+    <updated>2024-01-01T00:00:00+00:00</updated>
+  </info>
+  <citation>
+    <layout prefix="[" suffix="]" delimiter=", ">
+      <text variable="citation-label"/>
+    </layout>
+  </citation>
+  <bibliography>
+    <sort>
+      <key variable="citation-label"/>
+    </sort>
+    <layout suffix=".">
+      <text variable="citation-label" prefix="[" suffix="] "/>
+      <group delimiter=", ">
+        <names variable="author">
+          <name initialize-with=". " and="text" delimiter=", "/>
+        </names>
+        <text variable="title" quotes="true"/>
+        <choose>
+          <if type="article-journal article" match="any">
+            <text variable="container-title" font-style="italic"/>
+            <group prefix=", ">
+              <text value="vol. "/>
+              <text variable="volume"/>
+            </group>
+            <group prefix=", ">
+              <text value="no. "/>
+              <text variable="issue"/>
+            </group>
+            <group prefix=", ">
+              <text value="pp. "/>
+              <text variable="page"/>
+            </group>
+          </if>
+          <else-if type="paper-conference chapter" match="any">
+            <group>
+              <text value="in "/>
+              <text variable="container-title" font-style="italic"/>
+            </group>
+            <group prefix=", ">
+              <text value="pp. "/>
+              <text variable="page"/>
+            </group>
+          </else-if>
+          <else>
+            <text variable="container-title" font-style="italic"/>
+          </else>
+        </choose>
+        <text variable="publisher"/>
+        <date variable="issued">
+          <date-part name="year"/>
+        </date>
+      </group>
+      <choose>
+        <if variable="DOI">
+          <text variable="DOI" prefix=". doi: "/>
+        </if>
+        <else-if variable="URL">
+          <text variable="URL" prefix=". Available: "/>
+        </else-if>
+      </choose>
+    </layout>
+  </bibliography>
+</style>
