@@ -60,6 +60,7 @@ The process begins by initializing a Harmony Memory (HM), a population of weight
 During each optimization iteration, the algorithm generates a new candidate solution by traversing the high-dimensional weight space through three distinct decision-making mechanisms. First, memory consideration allows the system to inherit values from the existing population, preserving successful traits. Second, pitch adjustment applies a localized perturbation, governed by a bandwidth parameter, to these inherited values, enabling a fine-tuned local search around known high-performing regions. Finally, random selection introduces entirely new values from the global bounds, maintaining diversity and preventing the search from becoming trapped in local optima.
 
 The effectiveness of each generated candidate is assessed against the current population; if the newly generated candidate produces a score superior to the weakest member of the current memory, the inferior harmony is discarded and replaced. This continuous refinement loop persists until the algorithm reaches a user-defined convergence target, exhausts its iteration budget, or triggers an early-stopping condition if no significant improvement is observed over a specific duration. By managing this evolving population of strategies, the system effectively automates the discovery of complex weight configurations that maximize the agent's long-term survival and clearing efficiency.
+
 #figure(
   include "../figures/hsa_flowchart.typ",
   caption: [Flowchart of the Harmony Search Algorithm (HSA). Each iteration generates a new candidate by choosing between memory consideration (with optional pitch adjustment) and random selection, then replaces the worst member if improved.],
@@ -91,6 +92,7 @@ the iteration budget is exhausted.
 The CES procedure is illustrated in @ces-flowchart.
 
 #figure(
+  scope: "parent",
   include "../figures/ces_flowchart.typ",
   caption: [Flowchart of the Cross-Entropy Search (CES) algorithm. The fully linear structure contrasts with HSA's branching mechanisms: each iteration samples, evaluates, selects elites, and updates the distribution parameters.],
 ) <ces-flowchart>
