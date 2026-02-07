@@ -99,6 +99,7 @@ shows gradual improvements through the final iterations.
 
 == Weight Distribution and Analysis
 
+// NOTE: this plot is great, maybe we should stress more that ces is much more constistent
 #figure(
   image("../figures/weights_distribution.pdf"),
   caption: [Violin plots of learned weight distributions for HSA and CES.],
