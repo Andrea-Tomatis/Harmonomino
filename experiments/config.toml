@@ -51,3 +51,6 @@ seed = 42
 
 [plots]
 output_dir = "../report/figures"
+
+[report]
+data_dir = "../report/data"

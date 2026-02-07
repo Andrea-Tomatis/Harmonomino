@@ -9,7 +9,6 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE_DIR = Path(__file__).resolve().parent
 CONFIG_PATH = BASE_DIR / "config.toml"
 RESULTS_DIR = BASE_DIR / "results"
-PLOTS_DIR = BASE_DIR / "plots"
 WEIGHTS_DIR = BASE_DIR / "weights"
 
 
@@ -19,7 +18,7 @@ def load_config() -> dict:
 
 
 def ensure_dirs() -> None:
-    for path in [RESULTS_DIR, PLOTS_DIR, WEIGHTS_DIR / "hsa", WEIGHTS_DIR / "ces", WEIGHTS_DIR / "baselines"]:
+    for path in [RESULTS_DIR, WEIGHTS_DIR / "hsa", WEIGHTS_DIR / "ces", WEIGHTS_DIR / "baselines"]:
         path.mkdir(parents=True, exist_ok=True)
 
 
@@ -72,6 +71,9 @@ def train_hsa(seed: int, cfg: dict) -> Path:
 def train_ces(seed: int, cfg: dict) -> Path:
     output = WEIGHTS_DIR / "ces" / f"seed-{seed}.txt"
     log_csv = RESULTS_DIR / f"convergence_ces_seed-{seed}.csv"
+    if output.exists() and log_csv.exists():
+        print(f"Skipping CES seed {seed} (outputs exist).")
+        return output
     cmd = [
         "cargo", "run", "--release", "--bin", "harmonomino", "--",
         "--algorithm", "ce",

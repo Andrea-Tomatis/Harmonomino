@@ -142,6 +142,10 @@ capture largely independent aspects of board quality.
 However, something something about opisite features in threes not being mapped.
 // TODO: comment on strong correlations in blocks above highest and pile height, and others.
 
+// TODO: reference consistency_test.pdf and consistency_error.pdf in a consistency section
+// TODO: reference weight_histograms.pdf and weight_categories.pdf in the weight analysis section
+// TODO: reference dbscan_stability.pdf, k_distance_elbow.pdf, and pca_weights.pdf in the weight analysis section
+
 == Parameter Sensitivity
 
 To assess hyperparameter sensitivity for Harmony Search, we sweep three key parameters

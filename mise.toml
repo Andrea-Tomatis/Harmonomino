@@ -1,0 +1,32 @@
+[tools]
+rust = "latest"
+uv = "latest"
+typst = "latest"
+
+[tasks.experiments]
+description = "Run the full experiment pipeline (training + eval + sweeps)"
+dir = "experiments"
+run = "uv run python run_experiments.py"
+
+[tasks.plots]
+description = "Generate plots and export data to report/"
+depends = ["experiments"]
+dir = "experiments"
+run = "uv run python plot_results.py"
+
+[tasks.report]
+description = "Compile the Typst report"
+depends = ["plots"]
+run = "typst compile report/main.typ"
+
+[tasks.pipeline]
+description = "Run full pipeline: experiments → plots → report"
+depends = ["report"]
+
+[tasks.check]
+description = "Run cargo check + clippy + tests"
+run = [
+  "cargo check",
+  "cargo clippy --all-targets",
+  "cargo test",
+]

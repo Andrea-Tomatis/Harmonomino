@@ -20,10 +20,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
+      - uses: jdx/mise-action@v2
 
       - name: Format
         run: cargo fmt
@@ -39,10 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
+      - uses: jdx/mise-action@v2
 
       - uses: Swatinem/rust-cache@v2
 
@@ -58,8 +52,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: jdx/mise-action@v2
 
       - uses: Swatinem/rust-cache@v2
 
@@ -68,3 +61,18 @@ jobs:
 
       - name: Run tests
         run: cargo test --verbose
+
+  pipeline-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+
+      - name: Install Python dependencies
+        run: |
+          pip install matplotlib numpy pandas seaborn scikit-learn
+
+      - name: Generate plots from committed results
+        working-directory: experiments
+        run: python plot_results.py
