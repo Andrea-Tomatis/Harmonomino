@@ -124,4 +124,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -m "ci: regenerate experiment results, figures, and report"
+          git pull --rebase
           git push
