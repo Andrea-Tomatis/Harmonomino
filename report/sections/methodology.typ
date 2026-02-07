@@ -19,9 +19,14 @@ These valid placements are explored across all possible combinations of rotation
 $ #score-eq , $
 where $f_i (s)$ are board heuristics and $w_i$ are learned weights. The move yielding the highest score is executed, updating the global game state before the next piece is generated. This cycle continues until the board reaches a terminal "game over" condition or a predefined maximum move limit is reached, providing a deterministic and high-performance methodology for assessing the efficacy of different heuristic weight configurations.
 
-The complete optimization pipeline (simulator + optimizer) is shown in //@pipeline. Some additional text
+The complete optimization pipeline (simulator + optimizer) is shown in @pipeline. Some additional text
 
-//#image("tetris_agent_environment.png", caption: "")<pipeline>
+#figure(
+  image("../figures/pipeline.png"),
+  caption: [
+    Optimization pipeline.
+  ],
+) <pipeline>
 
 == Heuristic Feature Set
 
