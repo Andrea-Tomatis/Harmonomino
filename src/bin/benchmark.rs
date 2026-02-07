@@ -85,7 +85,11 @@ fn compare_harmony_and_crossentropy() {
             .expect("Unable to create file"),
     );
 
-    writeln!(file, "Iteration, HS_score, HS_time, CE_score, CE_time, FCE_score, FCE_time, FHS_score, FHS_time").expect("Unable to write header");
+    writeln!(
+        file,
+        "Iteration, HS_score, HS_time, CE_score, CE_time, FCE_score, FCE_time, FHS_score, FHS_time"
+    )
+    .expect("Unable to write header");
 
     for i in 1..=10 {
         // Harmony Search
