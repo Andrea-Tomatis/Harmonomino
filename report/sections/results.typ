@@ -3,7 +3,6 @@
 #import "@preview/pillar:0.3.3": cols
 #import "../constants.typ": hv-weights, params, stable-weights, summary, ws
 
-// TODO: remove titles from plots and make them smaller (so the font is bigger)
 
 = Results
 
@@ -97,6 +96,14 @@ efficient for this problem: it finds near-optimal weights in an order of magnitu
 fewer iterations than the allotted budget, while HSA requires the entire budget and still
 shows gradual improvements through the final iterations.
 
+
+This difference in performance also shows up in the speed of execution, as shown in @fig-time, where CES runs much slower than HSA. A clear performance gap is observed between the two configurations, reflecting the different computational demands of each approach. The accurate HS method exhibits relatively stable execution times, generally ranging between 12 and 19 seconds per iteration. In contrast, the accurate CES method is significantly more computationally intensive, with processing times consistently exceeding those of HS and fluctuating between approximately 35 and 58 seconds.
+#figure(
+  image("../figures/speed_comparison.png"),
+  caption: [Execution time comparison of the two algorithms (seconds). The prefix "F" indicates that the solver has been tested with reduced settings],
+) <fig-time>
+
+
 == Weight Distribution and Analysis
 
 // NOTE: this plot is great, maybe we should stress more that ces is much more constistent
@@ -112,7 +119,7 @@ shows gradual improvements through the final iterations.
 
 @fig-violin and @fig-mean-std[] reveal the structure of the learned weight space. The most
 consistent weights, those with low standard deviation across seeds, include
-// NOTE: this is awesome right?
+// NOTE: this is awesome right? Confirmed
 #stable-weights.map(p => {
   let idx = p.at(0).slice(1)
   let s = p.at(1)
@@ -147,28 +154,26 @@ However, something something about opisite features in threes not being mapped.
 To assess hyperparameter sensitivity for Harmony Search, we sweep three key parameters
 while holding the others fixed.
 
-// TODO: adjust ylim to go from 193 to 202, like @fig-iter
 #figure(
-  image("../figures/benchmark_bandwidth.pdf"),
+  image("../figures/benchmark_bandwidth.png"),
   caption: [Effect of pitch-adjustment bandwidth on agent score.],
 ) <fig-bw>
 
-// TODO: This shows nothing, run until 200 iters instead, with more intermediate values.
+
 #figure(
-  image("../figures/benchmark_iterations.pdf"),
+  image("../figures/benchmark_iterations.png"),
   caption: [Effect of maximum iterations on agent score.],
 ) <fig-iter>
 
-// TODO: also make consistent y-lims
+
 #figure(
-  image("../figures/benchmark_pitch_adj_rate.pdf"),
+  image("../figures/benchmark_pitch_adj_rate.png"),
   caption: [Effect of pitch-adjustment rate on agent score.],
 ) <fig-par>
 
-// NOTE: These results are pretty disapointing, hope everything went well.
+// NOTE: These results are pretty disapointing, hope everything went well. Yeah technically one could argue that those graphs are useless because for example if you keep all the parameters fixed and you vary only pitch adjustment rate the only think that could reasonably change is the convergence speed and not the final peformance. While having bandwidth=0.1 or =1.0 doesn't change much as all the weight will be scaled by a factor of 10 but they will still mantain their relative importance. 
 @fig-bw shows that bandwidth has a moderate effect: too-small values restrict exploration,
 while excessively large values introduce disruptive perturbations. @fig-iter confirms
-// TODO: 200 needs to be updated after re-running @fig-iter
-diminishing returns beyond roughly 200 iterations, consistent with the convergence analysis
+diminishing returns beyond roughly 170 iterations, consistent with the convergence analysis
 above. @fig-par indicates that the pitch-adjustment rate has little effect as well on final
 performance.
