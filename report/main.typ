@@ -53,6 +53,20 @@
 ): set figure.caption(position: top)
 #set figure(placement: auto)
 
+// NOTE: This shouldn't be necessary, maybe the template does something weird?
+#set ref(supplement: it => {
+  if it.func() == figure and it.kind == table {
+    [Tab.]
+  } else if it.func() == figure and it.kind == image {
+    [Fig.]
+  } else if it.func() == math.equation {
+    [Eq.]
+  } else {
+    it.supplement
+  }
+})
+
+
 // Alphanumeric citation labels
 #set cite(style: "alphanumeric")
 

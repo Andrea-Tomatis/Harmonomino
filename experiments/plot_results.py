@@ -1,4 +1,6 @@
 import csv
+import json
+import shutil
 import tomllib
 from pathlib import Path
 
@@ -15,6 +17,10 @@ BASE_DIR = Path(__file__).resolve().parent
 RESULTS_DIR = BASE_DIR / "results"
 WEIGHTS_DIR = BASE_DIR / "weights"
 CONFIG_PATH = BASE_DIR / "config.toml"
+REPORT_DATA_DIR = BASE_DIR / ".." / "report" / "data"
+
+HIGH_VARIANCE_THRESHOLD = 0.6
+LOW_VARIANCE_THRESHOLD = 0.3
 
 WEIGHT_COLS = [f"w{i}" for i in range(1, 17)]
 
@@ -59,6 +65,24 @@ def load_eval_data() -> dict[str, list[int]]:
         if rows:
             data[method] = rows
     return data
+
+
+def load_stopping_iterations() -> dict[str, list[int]]:
+    """Extract actual iteration count from each convergence CSV."""
+    result: dict[str, list[int]] = {}
+    for prefix in ("hsa", "ces"):
+        files = sorted(RESULTS_DIR.glob(f"convergence_{prefix}_seed-*.csv"))
+        stops = []
+        for path in files:
+            with path.open("r", newline="") as f:
+                reader = csv.DictReader(f)
+                last_iter = 0
+                for row in reader:
+                    last_iter = int(row["iteration"])
+            stops.append(last_iter + 1)  # 0-indexed → count
+        if stops:
+            result[prefix] = stops
+    return result
 
 
 def load_convergence(prefix: str) -> tuple[list[int], list[float], list[float], list[float]] | None:
@@ -136,18 +160,19 @@ def load_consistency() -> tuple[list[str], list[float]] | None:
 
 
 def write_summary(data: dict[str, list[int]]) -> None:
-    summary_path = RESULTS_DIR / "summary.csv"
-    with summary_path.open("w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["method", "n", "mean", "median", "std", "ci95"])
-        for method, values in sorted(data.items()):
-            arr = np.array(values, dtype=float)
-            n = len(arr)
-            mean = float(arr.mean())
-            median = float(np.median(arr))
-            std = float(arr.std(ddof=1)) if n > 1 else 0.0
-            ci95 = float(1.96 * std / np.sqrt(n)) if n > 1 else 0.0
-            writer.writerow([method, n, f"{mean:.3f}", f"{median:.3f}", f"{std:.3f}", f"{ci95:.3f}"])
+    rows = [["method", "n", "mean", "median", "std", "ci95"]]
+    for method, values in sorted(data.items()):
+        arr = np.array(values, dtype=float)
+        n = len(arr)
+        mean = float(arr.mean())
+        median = float(np.median(arr))
+        std = float(arr.std(ddof=1)) if n > 1 else 0.0
+        ci95 = float(1.96 * std / np.sqrt(n)) if n > 1 else 0.0
+        rows.append([method, n, f"{mean:.3f}", f"{median:.3f}", f"{std:.3f}", f"{ci95:.3f}"])
+
+    for dest in (RESULTS_DIR / "summary.csv", REPORT_DATA_DIR / "summary.csv"):
+        with dest.open("w", newline="") as f:
+            csv.writer(f).writerows(rows)
 
 
 # ---------------------------------------------------------------------------
@@ -194,6 +219,51 @@ def plot_convergence(plots_dir: Path) -> None:
     plt.tight_layout()
     plt.savefig(plots_dir / "fitness_over_iter.pdf")
     plt.close()
+
+
+def write_stopping_csv(stops: dict[str, list[int]]) -> None:
+    """Write stopping_iterations.csv to results and report data directories."""
+    rows = [["algorithm", "seed_index", "stopping_iteration"]]
+    for algo, iters in sorted(stops.items()):
+        for idx, stop in enumerate(iters):
+            rows.append([algo, idx, stop])
+
+    for dest in (RESULTS_DIR / "stopping_iterations.csv", REPORT_DATA_DIR / "stopping_iterations.csv"):
+        with dest.open("w", newline="") as f:
+            csv.writer(f).writerows(rows)
+
+
+def plot_stopping_iterations(stops: dict[str, list[int]], cfg: dict, plots_dir: Path) -> None:
+    """Grouped bar chart showing when each seed stopped iterating."""
+    algo_labels = {"hsa": "HSA", "ces": "CES"}
+    algo_colors = {"hsa": "#4c72b0", "ces": "#dd8452"}
+    max_iters = {"hsa": cfg["hsa"]["iterations"], "ces": cfg["ces"]["iterations"]}
+
+    max_seeds = max(len(v) for v in stops.values())
+    seed_indices = np.arange(max_seeds)
+    n_algos = len(stops)
+    bar_width = 0.8 / n_algos
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+
+    for i, (algo, iters) in enumerate(sorted(stops.items())):
+        offsets = seed_indices[:len(iters)] + i * bar_width - (n_algos - 1) * bar_width / 2
+        ax.bar(offsets, iters, width=bar_width, label=algo_labels.get(algo, algo),
+               color=algo_colors.get(algo, "gray"), edgecolor="black", alpha=0.85)
+        ax.axhline(max_iters[algo], color=algo_colors.get(algo, "gray"),
+                   linestyle="--", linewidth=1, alpha=0.6,
+                   label=f"{algo_labels.get(algo, algo)} max ({max_iters[algo]})")
+
+    ax.set_xticks(seed_indices)
+    ax.set_xticklabels([str(i) for i in range(max_seeds)])
+    ax.set_xlabel("Seed index")
+    ax.set_ylabel("Iteration stopped at")
+    ax.set_title("Early Stopping: Iteration Count per Seed")
+    ax.legend(fontsize=8)
+    ax.grid(axis="y", linestyle="--", alpha=0.5)
+    fig.tight_layout()
+    fig.savefig(plots_dir / "stopping_iterations.pdf")
+    plt.close(fig)
 
 
 def plot_weight_distributions(plots_dir: Path) -> None:
@@ -338,8 +408,17 @@ def plot_weight_mean_std(df: pd.DataFrame, plots_dir: Path) -> None:
     plt.savefig(plots_dir / "weight_mean_std.pdf")
     plt.close()
 
-    stats_summary = pd.DataFrame({"Mean": means, "Std Dev": stds})
-    stats_summary.to_csv(RESULTS_DIR / "weight_stats.csv")
+    # Build enriched weight_stats.csv
+    ranked = stds.sort_values().index.tolist()
+    rows = [["weight", "feature_name", "mean", "std", "stability_rank", "high_variance"]]
+    for c in cols:
+        rank = ranked.index(c) + 1  # 1 = lowest std (most stable)
+        hv = "true" if float(stds[c]) > HIGH_VARIANCE_THRESHOLD else "false"
+        rows.append([c, FEATURE_NAMES.get(c, c), f"{means[c]:.4f}", f"{stds[c]:.4f}", rank, hv])
+
+    for dest in (RESULTS_DIR / "weight_stats.csv", REPORT_DATA_DIR / "weight_stats.csv"):
+        with dest.open("w", newline="") as f:
+            csv.writer(f).writerows(rows)
 
 
 def plot_correlation_heatmap(df: pd.DataFrame, plots_dir: Path) -> None:
@@ -525,6 +604,38 @@ def plot_weight_categories(df: pd.DataFrame, plots_dir: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Params export
+# ---------------------------------------------------------------------------
+
+
+def write_params_json(cfg: dict) -> None:
+    params = {
+        "n_features": cfg["hsa"]["n_weights"],
+        "training_seeds": len(cfg["training"]["seeds"]),
+        "training_sim_length": cfg["training"]["sim_length"],
+        "eval_seeds": len(cfg["evaluation"]["seeds"]),
+        "eval_sim_length": cfg["evaluation"]["sim_length"],
+        "hsa_memory_size": cfg["hsa"]["memory_size"],
+        "hsa_iterations": cfg["hsa"]["iterations"],
+        "hsa_accept_rate": cfg["hsa"]["accept_rate"],
+        "hsa_pitch_adj_rate": cfg["hsa"]["pitch_adj_rate"],
+        "hsa_bandwidth": cfg["hsa"]["bandwidth"],
+        "ces_n_samples": cfg["ces"]["n_samples"],
+        "ces_n_elite": cfg["ces"]["n_elite"],
+        "ces_iterations": cfg["ces"]["iterations"],
+        "ces_initial_std_dev": cfg["ces"]["initial_std_dev"],
+        "ces_std_dev_floor": cfg["ces"]["std_dev_floor"],
+        "ces_early_stop_target": cfg["ces"]["early_stop_target"],
+        "random_weights_count": cfg["baselines"]["random_weights"],
+        "mass_optimize_count": cfg["mass_optimize"]["count"],
+        "high_variance_threshold": HIGH_VARIANCE_THRESHOLD,
+        "low_variance_threshold": LOW_VARIANCE_THRESHOLD,
+    }
+    for dest in (RESULTS_DIR / "params.json", REPORT_DATA_DIR / "params.json"):
+        dest.write_text(json.dumps(params, indent=2) + "\n")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -536,6 +647,10 @@ def main() -> None:
         plots_dir = BASE_DIR / plots_dir
     plots_dir.mkdir(parents=True, exist_ok=True)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    REPORT_DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    # --- Export experiment parameters ---
+    write_params_json(cfg)
 
     # --- Evaluation summary & distributions ---
     data = load_eval_data()
@@ -545,6 +660,12 @@ def main() -> None:
 
     # --- Convergence curves ---
     plot_convergence(plots_dir)
+
+    # --- Early stopping analysis ---
+    stops = load_stopping_iterations()
+    if stops:
+        write_stopping_csv(stops)
+        plot_stopping_iterations(stops, cfg, plots_dir)
 
     # --- Weight violin plots ---
     plot_weight_distributions(plots_dir)
