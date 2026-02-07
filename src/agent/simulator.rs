@@ -1,45 +1,7 @@
-use std::fmt;
-use std::str::FromStr;
-
 use crate::eval_fns::calculate_weighted_score_n;
 use crate::game::{Board, FallingPiece, GameState, Tetromino};
 use crate::weights;
 use rayon::prelude::*;
-
-const ROWS_CLEARED_WEIGHT: f64 = 1.0;
-
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
-pub enum ScoringMode {
-    #[default]
-    Full,
-    HeuristicsOnly,
-    RowsOnly,
-}
-
-impl FromStr for ScoringMode {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "full" => Ok(Self::Full),
-            "heuristics-only" => Ok(Self::HeuristicsOnly),
-            "rows-only" => Ok(Self::RowsOnly),
-            other => Err(format!(
-                "unknown scoring mode '{other}': expected full, heuristics-only, or rows-only"
-            )),
-        }
-    }
-}
-
-impl fmt::Display for ScoringMode {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Full => write!(f, "full"),
-            Self::HeuristicsOnly => write!(f, "heuristics-only"),
-            Self::RowsOnly => write!(f, "rows-only"),
-        }
-    }
-}
 
 /// Finds the optimal placement for a piece on the given board.
 /// Returns the resulting board (with rows cleared) and the number of rows cleared.
@@ -53,7 +15,6 @@ pub fn find_best_move(
     board: &Board,
     piece: Tetromino,
     weights: &[f64; weights::NUM_WEIGHTS],
-    scoring_mode: ScoringMode,
     n_weights: usize,
 ) -> Option<(Board, u32)> {
     let base_piece = FallingPiece::spawn(piece);
@@ -80,16 +41,8 @@ pub fn find_best_move(
                     let mut possible_board = board.with_piece(&rotated_piece);
                     let current_rows_cleared = possible_board.clear_full_rows();
 
-                    let score = match scoring_mode {
-                        ScoringMode::Full => f64::from(current_rows_cleared).mul_add(
-                            ROWS_CLEARED_WEIGHT,
-                            calculate_weighted_score_n(&possible_board, weights, n_weights),
-                        ),
-                        ScoringMode::HeuristicsOnly => {
-                            calculate_weighted_score_n(&possible_board, weights, n_weights)
-                        }
-                        ScoringMode::RowsOnly => f64::from(current_rows_cleared),
-                    };
+                    let score =
+                        calculate_weighted_score_n(&possible_board, weights, n_weights);
 
                     if score > local_max_score {
                         local_max_score = score;
@@ -113,21 +66,15 @@ pub fn find_best_move(
 pub struct Simulator {
     pub weights: [f64; weights::NUM_WEIGHTS],
     pub max_length: usize,
-    pub scoring_mode: ScoringMode,
     pub n_weights: usize,
 }
 
 impl Simulator {
     #[must_use]
-    pub const fn new(
-        weights: [f64; weights::NUM_WEIGHTS],
-        max_length: usize,
-        scoring_mode: ScoringMode,
-    ) -> Self {
+    pub const fn new(weights: [f64; weights::NUM_WEIGHTS], max_length: usize) -> Self {
         Self {
             weights,
             max_length,
-            scoring_mode,
             n_weights: weights::NUM_WEIGHTS,
         }
     }
@@ -157,13 +104,7 @@ impl Simulator {
         for _ in 0..self.max_length {
             let piece = Tetromino::random_with_rng(rng);
 
-            match find_best_move(
-                &game.board,
-                piece,
-                &self.weights,
-                self.scoring_mode,
-                self.n_weights,
-            ) {
+            match find_best_move(&game.board, piece, &self.weights, self.n_weights) {
                 Some((board, rows_cleared)) => {
                     game = GameState::from_board_with_rng(board, rng);
                     total_rows_cleared += rows_cleared;
@@ -187,8 +128,8 @@ mod tests {
         let weights = [0.0; weights::NUM_WEIGHTS];
         let sim_length = 100;
 
-        let sim_a = Simulator::new(weights, sim_length, ScoringMode::RowsOnly);
-        let sim_b = Simulator::new(weights, sim_length, ScoringMode::RowsOnly);
+        let sim_a = Simulator::new(weights, sim_length);
+        let sim_b = Simulator::new(weights, sim_length);
 
         let mut rng_a = rand::rngs::StdRng::seed_from_u64(1234);
         let mut rng_b = rand::rngs::StdRng::seed_from_u64(1234);

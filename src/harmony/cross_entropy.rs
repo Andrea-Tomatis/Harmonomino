@@ -5,7 +5,7 @@ use rand::Rng;
 use rand::SeedableRng;
 use rand_distr::{Distribution, Normal};
 
-use crate::agent::simulator::{ScoringMode, Simulator};
+use crate::agent::simulator::Simulator;
 use crate::weights;
 
 /// Configuration for a Cross-Entropy Search optimization run.
@@ -15,7 +15,6 @@ pub struct CeConfig {
     pub n_elite: usize,
     pub iterations: usize,
     pub sim_length: usize,
-    pub scoring_mode: ScoringMode,
     pub n_weights: usize,
     pub averaged: bool,
     pub averaged_runs: usize,
@@ -73,7 +72,6 @@ impl Default for CeConfig {
             n_elite: Self::DEFAULT_N_ELITE,
             iterations: Self::DEFAULT_ITERATIONS,
             sim_length: Self::DEFAULT_SIM_LENGTH,
-            scoring_mode: ScoringMode::default(),
             n_weights: Self::DEFAULT_N_WEIGHTS,
             averaged: false,
             averaged_runs: Self::DEFAULT_AVERAGED_RUNS,
@@ -126,7 +124,6 @@ impl CrossEntropySearch {
     pub fn optimize_with_rng<R: Rng + ?Sized>(
         &mut self,
         sim_length: usize,
-        scoring_mode: ScoringMode,
         n_weights: usize,
         averaged: bool,
         averaged_runs: usize,
@@ -166,7 +163,6 @@ impl CrossEntropySearch {
                     rng,
                     weights,
                     sim_length,
-                    scoring_mode,
                     n_weights,
                     averaged,
                     averaged_runs,
@@ -285,7 +281,6 @@ fn optimize_weights_ce_with_rng<R: Rng + ?Sized>(
 
     let result = solver.optimize_with_rng(
         config.sim_length,
-        config.scoring_mode,
         config.n_weights,
         config.averaged,
         config.averaged_runs,
@@ -305,7 +300,7 @@ fn optimize_weights_ce_with_rng<R: Rng + ?Sized>(
         result.weights[0], result.weights[1], result.weights[2]
     );
 
-    weights::save(output, &result.weights, config.scoring_mode)?;
+    weights::save(output, &result.weights)?;
     println!("Weights saved to {}", output.display());
 
     Ok(result)
@@ -341,7 +336,6 @@ fn evaluate_weights<R: Rng + ?Sized>(
     rng: &mut R,
     weights: [f64; weights::NUM_WEIGHTS],
     sim_length: usize,
-    scoring_mode: ScoringMode,
     n_weights: usize,
     averaged: bool,
     averaged_runs: usize,
@@ -349,14 +343,13 @@ fn evaluate_weights<R: Rng + ?Sized>(
     if averaged {
         let total: f64 = (0..averaged_runs)
             .map(|_| {
-                let sim =
-                    Simulator::new(weights, sim_length, scoring_mode).with_n_weights(n_weights);
+                let sim = Simulator::new(weights, sim_length).with_n_weights(n_weights);
                 f64::from(sim.simulate_game_with_rng(rng))
             })
             .sum();
         total / f64::from(u32::try_from(averaged_runs).unwrap_or(u32::MAX))
     } else {
-        let sim = Simulator::new(weights, sim_length, scoring_mode).with_n_weights(n_weights);
+        let sim = Simulator::new(weights, sim_length).with_n_weights(n_weights);
         f64::from(sim.simulate_game_with_rng(rng))
     }
 }

@@ -28,9 +28,8 @@ def run_cmd(cmd: list[str]) -> None:
     subprocess.run(cmd, cwd=ROOT, check=True)
 
 
-def write_weights(path: Path, scoring_mode: str, weights: list[float]) -> None:
-    lines = [f"# scoring-mode: {scoring_mode}\n"]
-    lines.extend(f"{w}\n" for w in weights)
+def write_weights(path: Path, weights: list[float]) -> None:
+    lines = [f"{w}\n" for w in weights]
     path.write_text("".join(lines))
 
 
@@ -55,7 +54,6 @@ def train_hsa(seed: int, cfg: dict) -> Path:
         "--pitch-adj-rate", str(cfg["pitch_adj_rate"]),
         "--bandwidth", str(cfg["bandwidth"]),
         "--sim-length", str(cfg["sim_length"]),
-        "--scoring-mode", cfg["scoring_mode"],
         "--n-weights", str(cfg["n_weights"]),
         "--averaged-runs", str(cfg["averaged_runs"]),
         "--output", str(output),
@@ -84,7 +82,6 @@ def train_ces(seed: int, cfg: dict) -> Path:
         "--initial-std-dev", str(cfg["initial_std_dev"]),
         "--std-dev-floor", str(cfg["std_dev_floor"]),
         "--sim-length", str(cfg["sim_length"]),
-        "--scoring-mode", cfg["scoring_mode"],
         "--n-weights", str(cfg["n_weights"]),
         "--averaged-runs", str(cfg["averaged_runs"]),
         "--output", str(output),
@@ -109,14 +106,6 @@ def create_baselines(cfg: dict, n_weights: int) -> dict[str, list[Path]]:
     baseline_dir = WEIGHTS_DIR / "baselines"
     baseline_dir.mkdir(parents=True, exist_ok=True)
 
-    rows_only = baseline_dir / "rows-only.txt"
-    zero_full = baseline_dir / "zero-full.txt"
-
-    if not rows_only.exists():
-        write_weights(rows_only, "rows-only", [0.0] * n_weights)
-    if not zero_full.exists():
-        write_weights(zero_full, "full", [0.0] * n_weights)
-
     random_paths: list[Path] = []
     rng = random.Random(cfg["random_seed"])
     for i in range(cfg["random_weights"]):
@@ -125,11 +114,9 @@ def create_baselines(cfg: dict, n_weights: int) -> dict[str, list[Path]]:
         if path.exists():
             continue
         weights = [rng.uniform(-1.0, 1.0) for _ in range(n_weights)]
-        write_weights(path, "full", weights)
+        write_weights(path, weights)
 
     return {
-        "rows_only": [rows_only],
-        "zero_full": [zero_full],
         "random": random_paths,
     }
 
@@ -278,8 +265,6 @@ def main() -> None:
     # --- Phase 3: Evaluation ---
     run_eval("hsa", hsa_weights, eval_cfg, hsa_cfg["n_weights"])
     run_eval("ces", ces_weights, eval_cfg, ces_cfg["n_weights"])
-    run_eval("rows_only", baselines["rows_only"], eval_cfg, hsa_cfg["n_weights"])
-    run_eval("zero_full", baselines["zero_full"], eval_cfg, hsa_cfg["n_weights"])
     run_eval("random", baselines["random"], eval_cfg, hsa_cfg["n_weights"])
 
     # --- Phase 4: Parameter sweeps ---

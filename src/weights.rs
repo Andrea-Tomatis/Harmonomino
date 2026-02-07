@@ -2,42 +2,19 @@ use std::fmt::Write as _;
 use std::path::Path;
 use std::{fs, io};
 
-use crate::agent::ScoringMode;
-
 /// Number of evaluation function weights.
 pub const NUM_WEIGHTS: usize = 16;
 
-const HEADER_PREFIX: &str = "# scoring-mode: ";
-
-/// Loads weights from a text file, returning the weights and the scoring mode.
+/// Loads weights from a text file.
 ///
-/// Files may optionally start with a `# scoring-mode: <MODE>` header line.
 /// Lines starting with `#` are skipped when parsing weight values.
-/// Files without the header default to [`ScoringMode::Full`].
 ///
 /// # Errors
 ///
 /// Returns an error if the file cannot be read, contains non-float values,
 /// or does not contain exactly [`NUM_WEIGHTS`] values.
-pub fn load(path: &Path) -> io::Result<([f64; NUM_WEIGHTS], ScoringMode)> {
+pub fn load(path: &Path) -> io::Result<[f64; NUM_WEIGHTS]> {
     let contents = fs::read_to_string(path)?;
-
-    let mut scoring_mode = ScoringMode::Full;
-
-    for line in contents.lines() {
-        let trimmed = line.trim();
-        if let Some(mode_str) = trimmed.strip_prefix(HEADER_PREFIX) {
-            scoring_mode = mode_str
-                .trim()
-                .parse()
-                .map_err(|e: String| io::Error::new(io::ErrorKind::InvalidData, e))?;
-            break;
-        }
-        // Only check the first non-empty line for the header
-        if !trimmed.is_empty() {
-            break;
-        }
-    }
 
     let values: Vec<f64> = contents
         .lines()
@@ -61,20 +38,16 @@ pub fn load(path: &Path) -> io::Result<([f64; NUM_WEIGHTS], ScoringMode)> {
 
     let mut weights = [0.0; NUM_WEIGHTS];
     weights.copy_from_slice(&values);
-    Ok((weights, scoring_mode))
+    Ok(weights)
 }
 
-/// Saves weights to a text file with a `# scoring-mode:` header.
+/// Saves weights to a text file.
 ///
 /// # Errors
 ///
 /// Returns an error if the file cannot be written.
-pub fn save(
-    path: &Path,
-    weights: &[f64; NUM_WEIGHTS],
-    scoring_mode: ScoringMode,
-) -> io::Result<()> {
-    let mut contents = format!("{HEADER_PREFIX}{scoring_mode}\n");
+pub fn save(path: &Path, weights: &[f64; NUM_WEIGHTS]) -> io::Result<()> {
+    let mut contents = String::new();
     for w in weights {
         let _ = writeln!(contents, "{w}");
     }

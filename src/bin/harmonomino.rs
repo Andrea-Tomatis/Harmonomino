@@ -1,14 +1,11 @@
 use std::io;
 use std::path::PathBuf;
 
-use harmonomino::agent::{ScoringMode, simulator::Simulator};
 use harmonomino::apply_flags;
 use harmonomino::cli::Cli;
 use harmonomino::harmony::{
     CeConfig, OptimizeConfig, optimize_weights_ce_with_seed, optimize_weights_with_seed,
 };
-use harmonomino::weights;
-use rand::SeedableRng;
 
 fn main() -> io::Result<()> {
     let cli = Cli::parse();
@@ -39,7 +36,6 @@ fn run_hsa(cli: &Cli) -> io::Result<()> {
         "--pitch-adj-rate" => config.pitch_adj_rate,
         "--bandwidth"      => config.bandwidth,
         "--sim-length"     => config.sim_length,
-        "--scoring-mode"   => config.scoring_mode,
         "--n-weights"      => config.n_weights,
         "--averaged-runs"  => config.averaged_runs,
         "--early-stop-patience" => config.early_stop_patience,
@@ -57,24 +53,6 @@ fn run_hsa(cli: &Cli) -> io::Result<()> {
         .get("--output")
         .map_or_else(|| PathBuf::from("weights.txt"), PathBuf::from);
 
-    if config.scoring_mode == ScoringMode::RowsOnly {
-        println!("Scoring mode: rows-only (skipping HSA optimization)");
-        let sim = Simulator::new(
-            [0.0; weights::NUM_WEIGHTS],
-            config.sim_length,
-            ScoringMode::RowsOnly,
-        )
-        .with_n_weights(config.n_weights);
-        let fitness = if let Some(seed) = seed {
-            let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
-            sim.simulate_game_with_rng(&mut rng)
-        } else {
-            sim.simulate_game()
-        };
-        println!("Rows cleared: {fitness}");
-        return Ok(());
-    }
-
     let _ = optimize_weights_with_seed(&config, &output, seed, log_csv.as_deref())?;
     Ok(())
 }
@@ -86,7 +64,6 @@ fn run_ce(cli: &Cli) -> io::Result<()> {
         "--n-elite"        => config.n_elite,
         "--iterations"     => config.iterations,
         "--sim-length"     => config.sim_length,
-        "--scoring-mode"   => config.scoring_mode,
         "--n-weights"      => config.n_weights,
         "--averaged-runs"  => config.averaged_runs,
         "--initial-std-dev" => config.initial_std_dev,

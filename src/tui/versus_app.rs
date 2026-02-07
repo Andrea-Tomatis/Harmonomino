@@ -3,7 +3,6 @@ use std::time::{Duration, Instant};
 use ratatui::Frame;
 use ratatui::crossterm::event::KeyCode;
 
-use crate::agent::ScoringMode;
 use crate::agent::find_best_move;
 use crate::game::{Board, GamePhase, GameState, MoveResult, Tetromino};
 use crate::weights;
@@ -18,7 +17,6 @@ pub struct VersusApp {
     pub agent_rows_cleared: u32,
     pub agent_game_over: bool,
     pub weights: [f64; weights::NUM_WEIGHTS],
-    pub scoring_mode: ScoringMode,
     pub last_tick: Instant,
     pub tick_rate: Duration,
     pub should_quit: bool,
@@ -26,16 +24,15 @@ pub struct VersusApp {
 }
 
 impl VersusApp {
-    /// Creates a new `VersusApp` with the given weights and scoring mode.
+    /// Creates a new `VersusApp` with the given weights.
     #[must_use]
-    pub fn new(weights: [f64; weights::NUM_WEIGHTS], scoring_mode: ScoringMode) -> Self {
+    pub fn new(weights: [f64; weights::NUM_WEIGHTS]) -> Self {
         Self {
             user_game: GameState::new(),
             agent_board: Board::new(),
             agent_rows_cleared: 0,
             agent_game_over: false,
             weights,
-            scoring_mode,
             last_tick: Instant::now(),
             tick_rate: Duration::from_millis(500),
             should_quit: false,
@@ -68,7 +65,6 @@ impl VersusApp {
             &self.agent_board,
             piece,
             &self.weights,
-            self.scoring_mode,
             weights::NUM_WEIGHTS,
         ) {
             Some((board, rows_cleared)) => {

@@ -21,7 +21,7 @@ cargo run -- --help           # See all options
 | `cargo run` | Weight optimization (HSA or CES) |
 | `cargo run --bin tetris` | Interactive Tetris game (TUI) |
 | `cargo run --bin versus` | Human vs AI side-by-side (TUI) |
-| `cargo run --bin benchmark` | Scoring mode comparison & parameter sweeps |
+| `cargo run --bin benchmark` | Comparison table & parameter sweeps |
 
 ## Optimization
 

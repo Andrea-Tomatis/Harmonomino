@@ -1,9 +1,7 @@
-use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader, BufWriter, Write};
 use std::path::Path;
 
-use harmonomino::agent::ScoringMode;
 use harmonomino::agent::simulator::Simulator;
 use harmonomino::apply_flags;
 use harmonomino::cli::Cli;
@@ -16,7 +14,7 @@ fn usage() -> String {
         "\
 Usage: benchmark [OPTIONS]
 
-Runs a single simulation under each scoring mode and prints a comparison.
+Runs simulations and prints results.
 
 Options:
   --sim-length <N>      Pieces per simulation game     [default: {}]
@@ -33,7 +31,7 @@ Options:
   --help                Print this help message
 
 Examples:
-  benchmark --weights weights-full.txt --sim-length 500
+  benchmark --weights weights.txt --sim-length 500
   benchmark --sweep iterations --sim-length 100
   benchmark --mass-optimize 100",
         OptimizeConfig::DEFAULT_SIM_LENGTH,
@@ -73,68 +71,42 @@ fn main() -> io::Result<()> {
         return mass_optimize(count, sim_length, n_weights, averaged, averaged_runs);
     }
 
-    run_comparison_table(&cli, sim_length)
+    run_comparison_table(&cli, sim_length, n_weights)
 }
 
-/// Default comparison-table mode (existing behavior).
-fn run_comparison_table(cli: &Cli, sim_length: usize) -> io::Result<()> {
+/// Default comparison-table mode.
+fn run_comparison_table(cli: &Cli, sim_length: usize, n_weights: usize) -> io::Result<()> {
     let weight_paths = cli.get_all("--weights");
 
-    let mut mode_weights: HashMap<ScoringMode, [f64; weights::NUM_WEIGHTS]> = HashMap::new();
+    let mut entries: Vec<(String, [f64; weights::NUM_WEIGHTS])> = Vec::new();
 
     if weight_paths.is_empty() {
-        let defaults = ["weights-full.txt", "weights-heur.txt", "weights.txt"];
+        let defaults = ["weights.txt"];
         for name in defaults {
             let path = Path::new(name);
             if path.exists() {
-                let (w, mode) = weights::load(path)?;
-                if mode_weights.contains_key(&mode) {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidInput,
-                        format!("duplicate scoring mode '{mode}' from {name}"),
-                    ));
-                }
-                mode_weights.insert(mode, w);
+                let w = weights::load(path)?;
+                entries.push((name.to_string(), w));
             }
         }
-        if mode_weights.is_empty() {
-            prompt_and_generate(&mut mode_weights)?;
+        if entries.is_empty() {
+            entries = prompt_and_generate()?;
         }
     } else {
         for path_str in &weight_paths {
             let path = Path::new(path_str);
-            let (w, mode) = weights::load(path)?;
-            if mode_weights.contains_key(&mode) {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    format!("duplicate scoring mode '{mode}' from {path_str}"),
-                ));
-            }
-            mode_weights.insert(mode, w);
+            let w = weights::load(path)?;
+            entries.push(((*path_str).to_string(), w));
         }
     }
 
-    let modes: &[(ScoringMode, &str)] = &[
-        (ScoringMode::Full, "full"),
-        (ScoringMode::HeuristicsOnly, "heuristics-only"),
-        (ScoringMode::RowsOnly, "rows-only"),
-    ];
+    println!("{:<30}| Rows Cleared", "Weights");
+    println!("------------------------------+-------------");
 
-    println!("{:<19}| Rows Cleared", "Scoring Mode");
-    println!("-------------------+-------------");
-
-    for &(mode, label) in modes {
-        if mode == ScoringMode::RowsOnly {
-            let sim = Simulator::new([0.0; weights::NUM_WEIGHTS], sim_length, mode);
-            let rows = sim.simulate_game();
-            println!("{label:<19}| {rows}");
-        } else if let Some(&w) = mode_weights.get(&mode) {
-            let sim = Simulator::new(w, sim_length, mode);
-            let rows = sim.simulate_game();
-            println!("{label:<19}| {rows}");
-        } else {
-            println!("{label:<19}| N/A (no matching weights file)");
-        }
+    for (label, w) in &entries {
+        let sim = Simulator::new(*w, sim_length).with_n_weights(n_weights);
+        let rows = sim.simulate_game();
+        println!("{label:<30}| {rows}");
     }
 
     Ok(())
@@ -169,31 +141,29 @@ fn run_eval(cli: &Cli, sim_length: usize, n_weights: usize) -> io::Result<()> {
     };
 
     let mut writer = BufWriter::new(File::create(output_csv)?);
-    writeln!(writer, "weight_id,scoring_mode,seed,rows_cleared")?;
+    writeln!(writer, "weight_id,seed,rows_cleared")?;
 
     for weight_path in weight_paths {
         let path = Path::new(weight_path);
-        let (w, mode) = weights::load(path)?;
+        let w = weights::load(path)?;
         let weight_id = path
             .file_stem()
             .and_then(|s| s.to_str())
             .unwrap_or(weight_path);
 
         for &seed in &seeds {
-            let sim = Simulator::new(w, sim_length, mode).with_n_weights(n_weights);
+            let sim = Simulator::new(w, sim_length).with_n_weights(n_weights);
             let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
             let rows = sim.simulate_game_with_rng(&mut rng);
-            writeln!(writer, "{weight_id},{mode},{seed},{rows}")?;
+            writeln!(writer, "{weight_id},{seed},{rows}")?;
         }
     }
 
     Ok(())
 }
 
-fn prompt_and_generate(
-    mode_weights: &mut HashMap<ScoringMode, [f64; weights::NUM_WEIGHTS]>,
-) -> io::Result<()> {
-    eprintln!("No weights files found (tried weights-full.txt, weights-heur.txt, weights.txt).");
+fn prompt_and_generate() -> io::Result<Vec<(String, [f64; weights::NUM_WEIGHTS])>> {
+    eprintln!("No weights files found (tried weights.txt).");
     eprint!("Run optimization to generate weights? [y/n] ");
     io::stderr().flush()?;
 
@@ -207,22 +177,9 @@ fn prompt_and_generate(
         ));
     }
 
-    let modes_to_train: &[(ScoringMode, &str)] = &[
-        (ScoringMode::Full, "weights-full.txt"),
-        (ScoringMode::HeuristicsOnly, "weights-heur.txt"),
-    ];
-
-    for &(mode, output_name) in modes_to_train {
-        let path = Path::new(output_name);
-        let config = OptimizeConfig {
-            scoring_mode: mode,
-            ..OptimizeConfig::default()
-        };
-        let result = optimize_weights(&config, path)?;
-        mode_weights.insert(mode, result.weights);
-    }
-
-    Ok(())
+    let path = Path::new("weights.txt");
+    let result = optimize_weights(&OptimizeConfig::default(), path)?;
+    Ok(vec![("weights.txt".to_string(), result.weights)])
 }
 
 fn parse_seeds_csv(value: &str) -> io::Result<Vec<u64>> {
@@ -380,7 +337,6 @@ fn sweep_parameter(
         let result = solver.optimize_with_rng(
             config.sim_length,
             config.bounds,
-            config.scoring_mode,
             config.n_weights,
             config.averaged,
             config.averaged_runs,
@@ -441,7 +397,6 @@ fn mass_optimize(
         let result = solver.optimize_with_rng(
             config.sim_length,
             config.bounds,
-            config.scoring_mode,
             config.n_weights,
             config.averaged,
             config.averaged_runs,
