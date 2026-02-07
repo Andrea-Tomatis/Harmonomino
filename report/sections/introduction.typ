@@ -2,10 +2,8 @@
 
 Tetris, the iconic puzzle video game created by Alexey Pajitnov in 1984, has attracted
 substantial interest from the artificial intelligence and optimization research communities.
-In Tetris, a sequence of Tetromino pieces,
-geometric shapes composed of four connected squares, // TODO: add actual definition
-falls from the top of a $10 × 20$ game board. The player must rotate and
-translate each piece to form complete horizontal rows, which are then cleared. The game
+A Tetromino is a geometric shape composed of four squares connected orthogonally (i.e. at the edges and not the corners)  #cite(<Golomb1994Polyominoes>,form: "prose"), and in Tetris, a sequence of these pieces falls from the top of a $10 × 20$ game board.
+The player must rotate and translate each piece to form complete horizontal rows, which are then cleared. The game
 terminates when the accumulated pieces prevent new pieces from entering the board, making
 the objective to clear as many rows as possible.
 
@@ -15,13 +13,19 @@ maximizing the number of cleared rows, maximizing the number of simultaneous fou
 clears ("Tetrises"), and minimizing the maximum height of occupied cells are all NP-complete
 problems. Furthermore, these objectives are inapproximable to within a factor of
 $p^(1-epsilon)$ for any $epsilon > 0$, where $p$ is the number of pieces in the sequence.
-This NP-completeness result establishes Tetris as an interesting testbed for metaheuristic
-optimization algorithms, as no polynomial-time algorithm can guarantee an optimal solution.
+The immense complexity of Tetris is rooted in its state space, which encompasses approximately $7×2^20$ possible configurations for a standard 20×10 board, as stated in #cite(<Algorta2019TetrisSurvey>, form: "prose"). This vast state space, combined with the stochastic nature of piece generation, makes Tetris a challenging domain for both exact algorithms and heuristic approaches. As a result, researchers have turned to metaheuristic optimization techniques to develop agents capable of playing Tetris effectively, often by optimizing a set of heuristic weights that guide the agent's decision-making process.
 
-// TODO: add something like:
-//from @Algorta2019TetrisSurvey: "Tetris is estimated to have 7 × 2^200 states"
-// anyways, this is a great paper to read more into.
+== Research Questions
 
+This work is guided by three research questions, which align with the broader goals of understanding and improving metaheuristic optimization for Tetris:
+
+- *RQ1:* Can metaheuristic optimization converge to high-quality Tetris agents using only board-state features? 
+
+- *RQ2:* What structure exists in the learned weight space — are certain features consistently emphasized?
+
+- *RQ3:* How does Harmony Search compare to Cross-Entropy Search under identical feature sets and simulation conditions? 
+
+//moved on top of "related work" section, since in the instruction it's speficfied that the question we want to answer comes before the literature review.
 == Related Work
 
 // TODO: add reference(s) (maybe not Romero)
@@ -33,7 +37,7 @@ and corresponding weights $w_i$, the agent selects the move that maximizes
 $ V(s) = sum_(i=1)^n w_i dot f_i (s) $
 
 The optimization problem then reduces to finding the weight vector $bold(w)$ that yields the
-highest number of cleared rows @Romero2011TetrisHarmonySearch.
+highest number of cleared rows #cite(<Romero2011TetrisHarmonySearch>, form: "prose").
 
 A variety of metaheuristic and machine learning approaches have been applied to this weight
 optimization problem. #cite(<Bohm2005Evolutionary>, form: "prose") used evolutionary algorithms,
@@ -43,7 +47,7 @@ demonstrated that relatively simple feature sets can produce competent agents.
 (ACO) to Tetris using a set of feature functions, reporting results competitive with other
 methods.
 
-// TODO: maybe split into full section on ce?
+// TODO: maybe split into full section on ce? I think this introduction is already long enough, will see later.
 An impressive result was achieved by #cite(<Szita2006NoisyCE>, form: "prose"), who applied the
 noisy cross-entropy method to Tetris. By injecting noise into the cross-entropy update rule, they prevented
 premature convergence of the sampling distribution.
@@ -51,6 +55,9 @@ premature convergence of the sampling distribution.
 // #cite(<Thiery2009CEImprovements>, form: "prose")
 // #cite(<Gabillon2013ADP>, form: "prose")
 // #cite(<Langenhoven2010SwarmTetris>, form: "prose")
+// 
+// At this point we are at half of the length of the paper 
+// so might want to keep this short.
 
 == The Harmony Search Algorithm
 
@@ -60,27 +67,12 @@ musicians. When musicians seek to create pleasing harmony, they may (1) play a k
 from memory, (2) play something similar to a known piece with slight variations, or (3)
 compose freely from random notes. These three strategies correspond to the three core
 mechanisms of HS: harmony memory consideration, pitch adjustment, and randomization.
-// TODO: this is kind of from @Romero2011TetrisHarmonySearch, check @Yang2009HSMetaheuristic instead
 
-The algorithm maintains a harmony memory (HM), a population of solution vectors
-analogous to a set of musical compositions. In each iteration, a new solution is constructed
-by, for each variable, either copying a value from a randomly selected existing
-solution in HM (with probability $r_"accept"$) or sampling a random value. Copied values may
-then be perturbed by a small amount (with probability $r_"pa"$). If the new candidate outperforms
-the worst solution in HM, it replaces it. HS does not require derivative information, and considers all existing solutions when generating a new candidate, unlike genetic algorithms, which typically recombine
-only two parents @Geem2001HarmonySearch @Yang2009HSMetaheuristic. // TODO: better cite sources
+The Harmony Search (HS) algorithm maintains a harmony memory (HM), a population of solution vectors. Each iteration constructs a new solution by either copying a value from HM (probability $r_"accept"$) or sampling randomly, with optional perturbation (probability $r_"pa"$). If the candidate outperforms the worst solution in HM, it replaces it. HS considers all solutions in HM, unlike genetic algorithms, which recombine only two parents #cite(<Geem2001HarmonySearch>, form: "prose"), #cite(<Yang2009HSMetaheuristic>, form: "prose").
 
 #cite(<Romero2011TetrisHarmonySearch>, form: "prose") were the first to apply Harmony Search to the
 Tetris weight optimization problem. Using 19 board feature functions and a harmony memory of
 size 5, their system demonstrated that HS can efficiently discover high-quality weight configurations, achieving a spawned-pieces-to-cleared-rows ratio approaching the theoretical optimum of 2.5.
-
-== Research Questions
-// TODO: incorportate better in rest of text
-This work is guided by three research questions:
-
-- *RQ1:* Can metaheuristic optimization converge to high-quality Tetris agents using only board-state features?
-- *RQ2:* How does Harmony Search compare to Cross-Entropy Search under identical feature sets and simulation conditions?
-- *RQ3:* What structure exists in the learned weight space --- are certain features consistently emphasized?
 
 == Contributions
 
@@ -88,7 +80,7 @@ This work presents _Harmonomino_, a Tetris agent optimization system implemented
 Our contributions are:
 that builds upon and extends the approach of #cite(<Romero2011TetrisHarmonySearch>, form: "prose").
 
-// FIX: current font doesn't support *bold* text.
+
 + *Reimplementation and refinement.* We reimplement the Harmony Search-based Tetris
   optimizer in Rust for improved performance. Of the original 19 feature functions, we retain
   16 that depend solely on the board state, removing three (removed rows, landing height,
@@ -96,7 +88,7 @@ that builds upon and extends the approach of #cite(<Romero2011TetrisHarmonySearc
 
 + *Cross-Entropy Search as a comparative optimizer.* In addition to the Harmony Search
   algorithm, we implement a Cross-Entropy Search (CES) optimizer // TODO: check references
-  @Szita2006NoisyCE @Thiery2009CEImprovements, enabling direct comparison between the two
+  #cite(<Szita2006NoisyCE>, form: "prose") #cite(<Thiery2009CEImprovements>, form: "prose"), enabling direct comparison between the two
   metaheuristic approaches under identical feature sets and simulation conditions.
 
 + *Benchmarking and parameter sweep framework.* We provide a benchmarking binary with
