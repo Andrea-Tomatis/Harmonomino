@@ -17,7 +17,22 @@ BASE_DIR = Path(__file__).resolve().parent
 RESULTS_DIR = BASE_DIR / "results"
 WEIGHTS_DIR = BASE_DIR / "weights"
 CONFIG_PATH = BASE_DIR / "config.toml"
-REPORT_DATA_DIR = BASE_DIR / ".." / "report" / "data"
+_DEFAULT_REPORT_DATA_DIR = BASE_DIR / ".." / "report" / "data"
+
+
+def _resolve_report_data_dir() -> Path:
+    try:
+        with CONFIG_PATH.open("rb") as f:
+            cfg = tomllib.load(f)
+        rel = cfg.get("report", {}).get("data_dir", "")
+        if rel:
+            return (BASE_DIR / rel).resolve()
+    except (FileNotFoundError, tomllib.TOMLDecodeError):
+        pass
+    return _DEFAULT_REPORT_DATA_DIR
+
+
+REPORT_DATA_DIR = _resolve_report_data_dir()
 
 HIGH_VARIANCE_THRESHOLD = 0.6
 LOW_VARIANCE_THRESHOLD = 0.3
@@ -53,10 +68,15 @@ def load_config() -> dict:
 # ---------------------------------------------------------------------------
 
 
+KNOWN_EVAL_METHODS = {"hsa", "ces", "random"}
+
+
 def load_eval_data() -> dict[str, list[int]]:
     data: dict[str, list[int]] = {}
     for path in sorted(RESULTS_DIR.glob("eval_*.csv")):
         method = path.stem.replace("eval_", "")
+        if method not in KNOWN_EVAL_METHODS:
+            continue
         rows: list[int] = []
         with path.open("r", newline="") as f:
             reader = csv.DictReader(f)

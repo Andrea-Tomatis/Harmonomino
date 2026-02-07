@@ -20,10 +20,10 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
+      - uses: jdx/mise-action@v2
+
+      - name: Install rustfmt
+        run: rustup component add rustfmt
 
       - name: Format
         run: cargo fmt
@@ -39,10 +39,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
+      - uses: jdx/mise-action@v2
+
+      - name: Install clippy
+        run: rustup component add clippy
 
       - uses: Swatinem/rust-cache@v2
 
@@ -58,8 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: jdx/mise-action@v2
 
       - uses: Swatinem/rust-cache@v2
 
@@ -68,3 +67,61 @@ jobs:
 
       - name: Run tests
         run: cargo test --verbose
+
+  generate:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: [test]
+    timeout-minutes: 120
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            experiments:
+              - 'experiments/config.toml'
+              - 'experiments/run_experiments.py'
+              - 'src/**'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+
+      - uses: jdx/mise-action@v2
+
+      - name: Check if experiments needed
+        id: check
+        run: |
+          if [ "${{ steps.filter.outputs.experiments }}" == "true" ] || [ -z "$(ls experiments/results/eval_*.csv 2>/dev/null)" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: Swatinem/rust-cache@v2
+        if: steps.check.outputs.run == 'true'
+
+      - name: Run experiments
+        if: steps.check.outputs.run == 'true'
+        working-directory: experiments
+        run: uv run python run_experiments.py
+
+      - name: Generate plots and data exports
+        working-directory: experiments
+        run: uv run python plot_results.py
+
+      - name: Compile report
+        run: typst compile report/main.typ
+
+      - name: Commit generated artifacts
+        run: |
+          git add -f experiments/results/ report/data/ report/figures/*.pdf report/main.pdf
+          git diff --cached --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "ci: regenerate experiment results, figures, and report"
+          git push
