@@ -103,7 +103,9 @@ This difference in performance also shows up in the speed of execution, as shown
 // you use the script everything should work great.
 
 #figure(
-  image("../figures/speed_comparison.pdf"),
+  [Placeholder],
+  // FIX: This file doesn't exist, that breaks the entire compilation
+  // image("../figures/speed_comparison.pdf"),
   caption: [Execution time comparison of the two algorithms (seconds).],
 ) <fig-time>
 
@@ -167,8 +169,7 @@ The consistency of these results is validated through clustering. The k-distance
   grid(
     columns: (1fr, 1.2fr),
     gutter: 10pt,
-    image("../figures/k_distance_elbow.pdf", width: 100%),
-    image("../figures/dbscan_stability.pdf", width: 100%),
+    image("../figures/k_distance_elbow.pdf", width: 100%), image("../figures/dbscan_stability.pdf", width: 100%),
   ),
   caption: [K-distance elbow plot and DBSCAN stability analysis.],
 ) <fig-cluster>

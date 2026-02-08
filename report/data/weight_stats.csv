@@ -1,17 +1,17 @@
 weight,feature_name,mean,std,stability_rank,high_variance
-w1,Pile Height,0.0637,0.5738,13,false
-w2,Holes,-0.2504,0.5323,11,false
-w3,Connected Holes,-0.0701,0.6741,16,true
-w4,Altitude Diff,0.1803,0.6160,15,true
-w5,Max Well Depth,-0.4681,0.4470,7,false
-w6,Sum of Wells,-0.6081,0.3153,3,false
-w7,Blocks,-0.1840,0.5191,9,false
-w8,Weighted Blocks,-0.5440,0.2841,1,false
-w9,Row Transitions,-0.7602,0.2957,2,false
-w10,Col Transitions,-0.2851,0.4980,8,false
-w11,Highest Hole,-0.2525,0.5322,10,false
-w12,Blocks Above Highest,0.5369,0.3200,4,false
-w13,Potential Rows,0.0006,0.5361,12,false
-w14,Smoothness,0.0027,0.4265,6,false
-w15,Row Holes,-0.0426,0.5979,14,false
-w16,Hole Depth,-0.2349,0.3388,5,false
+w1,Pile Height,-0.0331,0.5658,15,false
+w2,Holes,-0.3368,0.4657,7,false
+w3,Connected Holes,-0.2771,0.5347,11,false
+w4,Altitude Diff,0.0839,0.5518,13,false
+w5,Max Well Depth,-0.3947,0.5280,10,false
+w6,Sum of Wells,-0.4059,0.4349,4,false
+w7,Blocks,0.0280,0.5959,16,false
+w8,Weighted Blocks,-0.5796,0.2996,2,false
+w9,Row Transitions,-0.7112,0.3545,3,false
+w10,Col Transitions,-0.1928,0.5110,9,false
+w11,Highest Hole,-0.2835,0.4745,8,false
+w12,Blocks Above Highest,0.4770,0.2834,1,false
+w13,Potential Rows,0.1897,0.5349,12,false
+w14,Smoothness,-0.1602,0.4508,6,false
+w15,Row Holes,-0.0317,0.5567,14,false
+w16,Hole Depth,-0.1710,0.4402,5,false

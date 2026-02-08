@@ -148,15 +148,15 @@ def cleanup_orphans(manifest: Manifest, expected: set[str]) -> None:
 
 
 def binary_hash() -> str:
-    """Hash of Rust source inputs via git log."""
+    """Content hash of Rust source files, stable across jj rebases."""
     try:
         result = subprocess.run(
-            ["git", "log", "-1", "--format=%H", "--", "src/", "Cargo.toml", "Cargo.lock"],
+            ["git", "ls-files", "-s", "src/", "Cargo.toml", "Cargo.lock"],
             cwd=ROOT,
             capture_output=True,
             text=True,
             check=True,
         )
-        return result.stdout.strip()[:16]
+        return hashlib.sha256(result.stdout.encode()).hexdigest()[:16]
     except (subprocess.CalledProcessError, FileNotFoundError):
         return ""
