@@ -21,7 +21,6 @@
 ]
 
 == Harmony Search Algorithm
-// Slide 1: Introduction to Harmony Search
 #slide[
   == Harmony Search (HS) Algorithm
   
@@ -36,7 +35,6 @@
 
 ---
 
-// Slide 2: Core Mechanisms
 == Core Mechanisms of HS
 #slide[
   
@@ -58,7 +56,6 @@
 
 ---
 
-// Slide 3: Application to Tetris
 == HS in Tetris Weight Optimization
 #slide[
   
@@ -85,14 +82,6 @@
   include "../../report/figures/hsa_flowchart.typ", 
   )
 ]
-
-
-//
-// 
-//TODO: Implement here the plots for HSA only
-// 
-// 
-// 
 
 ---
 
@@ -130,7 +119,6 @@
 
 ---
 
-// Slide 7: Clustering and Stability (DBSCAN)
 == Convergence Stability (DBSCAN)
 #slide[
   
@@ -159,7 +147,6 @@
   - *Primary Cluster:* Most seeds converge to a similar region in the high-dimensional weight space, validating the robustness of the heuristic set.
 ]
 
-// Slide 9: Simulation Error Analysis
 == Theoretical Divergence (Error Analysis)
 #slide[
   
@@ -182,7 +169,6 @@
   )
 ]
 
-// Slide 5: Stability and Consistency
 == Simulation Consistency
 #slide[
   We tested the agent against a theoretical performance model to check for "plateaus."
@@ -257,16 +243,8 @@
 ]
 
 
-//
-// 
-//TODO: Implement here the plots for CES only
-// 
-// 
-
-
 
 == Performance Comparison HSA vs. CES
-// Slide 1: Agent Performance Overview
 #slide[
   
   Both optimization methods significantly outperform the random baseline, with CES showing a slight edge in raw performance.
@@ -297,7 +275,6 @@
 
 ---
 
-// Slide 10: Execution Speed & Computational Demand
 == Computational Performance Comparison
 #slide[
     #grid(
@@ -319,7 +296,6 @@
   )
 ]
 
-// Slide 2: Convergence and Efficiency
 == Convergence and Search Efficiency
 #slide[
   
@@ -365,7 +341,6 @@
 
 ---
 
-// Slide 3: Weight Analysis - Stability
 == Learned Weight Analysis
 #slide[
   
@@ -392,7 +367,6 @@
 
 ---
 
-// Slide 4: Weight Analysis - Correlations and Distribution
 == Feature Relationships and Directionality
 #slide[
   #grid(
@@ -414,7 +388,6 @@
 ---
 
 
-// Slide 6: Weight Distributions (Violin Plots)
 == Weight Distribution Analysis
 #slide[
 
