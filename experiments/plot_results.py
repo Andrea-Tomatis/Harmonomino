@@ -218,27 +218,69 @@ def plot_distributions(data: dict[str, list[int]], plots_dir: Path) -> None:
     plt.close()
 
 
+def load_convergence(prefix: str) -> tuple[list[int], list[float], list[float], list[float]] | None:
+    files = sorted(RESULTS_DIR.glob(f"convergence_{prefix}_seed-*.csv"))
+    if not files:
+        return None
+
+    buckets: dict[int, dict[str, list[float]]] = {}
+    for path in files:
+        with path.open("r", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                iteration = int(row["iteration"])
+                bucket = buckets.setdefault(iteration, {"best": [], "mean": []})
+                bucket["best"].append(float(row["best"]))
+                bucket["mean"].append(float(row["mean"]))
+
+    iterations = sorted(buckets.keys())
+    # We calculate the mean of the "best" found across seeds, 
+    # and the standard deviation to create the ribbon
+    best_mean = [float(np.mean(buckets[i]["best"])) for i in iterations]
+    best_std = [float(np.std(buckets[i]["best"])) for i in iterations]
+    
+    return iterations, best_mean, best_std
+
+
 def plot_convergence(plots_dir: Path) -> None:
     hsa = load_convergence("hsa")
     ces = load_convergence("ces")
+    eval_data = load_eval_data()
+    
     if not hsa and not ces:
         return
 
-    plt.figure(figsize=(8, 4))
+    plt.figure(figsize=(10, 5))
+    ax = plt.gca()
 
+    # --- Plot HSA ---
     if hsa:
-        iterations, best, mean, _ = hsa
-        plt.plot(iterations, best, label="HSA best")
-        plt.plot(iterations, mean, label="HSA mean", linestyle="--")
+        iters, y_mean, y_std = hsa
+        y_mean, y_std = np.array(y_mean), np.array(y_std)
+        line, = ax.plot(iters, y_mean, label="HSA (Best)", color="#4c72b0", linewidth=2)
+        ax.fill_between(iters, y_mean - y_std, y_mean + y_std, 
+                        color=line.get_color(), alpha=0.2, label="HSA ±1 Std Dev")
 
+    # --- Plot CES ---
     if ces:
-        iterations, best, mean, _ = ces
-        plt.plot(iterations, best, label="CES best")
-        plt.plot(iterations, mean, label="CES mean", linestyle="--")
+        iters, y_mean, y_std = ces
+        y_mean, y_std = np.array(y_mean), np.array(y_std)
+        line, = ax.plot(iters, y_mean, label="CES (Best)", color="#dd8452", linewidth=2)
+        ax.fill_between(iters, y_mean - y_std, y_mean + y_std, 
+                        color=line.get_color(), alpha=0.2, label="CES ±1 Std Dev")
 
-    plt.xlabel("Iteration")
-    plt.ylabel("Fitness")
-    plt.legend()
+    # --- Plot Baseline ---
+    if "random" in eval_data:
+        random_mean = np.mean(eval_data["random"])
+        ax.axhline(random_mean, color="black", linestyle=":", alpha=0.6, 
+                   label=f"Random Baseline ({random_mean:.1f})")
+
+    ax.set_xlabel("Iteration")
+    ax.set_ylabel("Fitness (Rows Cleared)")
+    ax.set_title("Optimization Convergence: Best Fitness with Variance Ribbon")
+    ax.legend(loc="lower right", frameon=True)
+    ax.grid(True, linestyle="--", alpha=0.4)
+    
     plt.tight_layout()
     plt.savefig(plots_dir / "fitness_over_iter.pdf")
     plt.close()

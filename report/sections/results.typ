@@ -99,8 +99,6 @@ shows gradual improvements through the final iterations.
 
 This difference in performance also shows up in the speed of execution, as shown in @fig-time, where CES runs much slower than HSA. A clear performance gap is observed between the two configurations, reflecting the different computational demands of each approach. The accurate HS method exhibits relatively stable execution times, generally ranging between 12 and 19 seconds per iteration. In contrast, the accurate CES method is significantly more computationally intensive, with processing times consistently exceeding those of HS and fluctuating between approximately 35 and 58 seconds.
 
-// TODO: Please don't put in figures manually because they can easily change. Also make it pdf, if
-// you use the script everything should work great.
 
 #figure(
   image("../figures/speed_comparison.pdf"),
@@ -172,7 +170,7 @@ The consistency of these results is validated through clustering. The k-distance
   caption: [K-distance elbow plot and DBSCAN stability analysis.],
 ) <fig-cluster>
 
-// TODO: reference consistency_test.pdf and consistency_error.pdf in a consistency section
+
 == Consistency Analysis
 The consistency of the simulation environment was evaluated by comparing empirical results against a theoretical performance model across varying game lengths. As the game length increases, the simulation results initially follow the theoretical maximum closely but begin to plateau after a length of approximately 500.
 
