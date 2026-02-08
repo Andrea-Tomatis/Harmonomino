@@ -94,6 +94,7 @@ jobs:
           key: experiments-${{ hashFiles('experiments/config.toml', 'src/**', 'Cargo.toml', 'Cargo.lock') }}
           restore-keys: |
             experiments-
+          save-always: true
 
       - name: Run experiments
         working-directory: experiments
