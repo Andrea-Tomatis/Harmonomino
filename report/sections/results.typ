@@ -98,8 +98,14 @@ shows gradual improvements through the final iterations.
 
 
 This difference in performance also shows up in the speed of execution, as shown in @fig-time, where CES runs much slower than HSA. A clear performance gap is observed between the two configurations, reflecting the different computational demands of each approach. The accurate HS method exhibits relatively stable execution times, generally ranging between 12 and 19 seconds per iteration. In contrast, the accurate CES method is significantly more computationally intensive, with processing times consistently exceeding those of HS and fluctuating between approximately 35 and 58 seconds.
+
+// TODO: Please don't put in figures manually because they can easily change. Also make it pdf, if
+// you use the script everything should work great.
+
 #figure(
-  image("../figures/speed_comparison.png"),
+  [placeholder: "Speed comparison plot goes here"],
+  // FIX: Commented because file doesn't exist
+  // image("../figures/speed_comparison.png"),
   caption: [Execution time comparison of the two algorithms (seconds). The prefix "F" indicates that the solver has been tested with reduced settings],
 ) <fig-time>
 
@@ -175,7 +181,7 @@ while holding the others fixed.
   caption: [Effect of pitch-adjustment rate on agent score.],
 ) <fig-par>
 
-// NOTE: These results are pretty disapointing, hope everything went well. Yeah technically one could argue that those graphs are useless because for example if you keep all the parameters fixed and you vary only pitch adjustment rate the only think that could reasonably change is the convergence speed and not the final peformance. While having bandwidth=0.1 or =1.0 doesn't change much as all the weight will be scaled by a factor of 10 but they will still mantain their relative importance. 
+// NOTE: These results are pretty disapointing, hope everything went well. Yeah technically one could argue that those graphs are useless because for example if you keep all the parameters fixed and you vary only pitch adjustment rate the only think that could reasonably change is the convergence speed and not the final peformance. While having bandwidth=0.1 or =1.0 doesn't change much as all the weight will be scaled by a factor of 10 but they will still mantain their relative importance.
 @fig-bw shows that bandwidth has a moderate effect: too-small values restrict exploration,
 while excessively large values introduce disruptive perturbations. @fig-iter confirms
 diminishing returns beyond roughly 170 iterations, consistent with the convergence analysis

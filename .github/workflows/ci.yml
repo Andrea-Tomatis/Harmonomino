@@ -110,6 +110,17 @@ jobs:
         working-directory: experiments
         run: uv run python run_experiments.py
 
+      - name: Commit experiment results
+        if: steps.check.outputs.run == 'true'
+        run: |
+          git add -f experiments/results/
+          git diff --cached --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "ci: update experiment results"
+          git pull --rebase
+          git push
+
       - name: Generate plots and data exports
         working-directory: experiments
         run: uv run python plot_results.py
@@ -117,12 +128,12 @@ jobs:
       - name: Compile report
         run: typst compile report/main.typ
 
-      - name: Commit generated artifacts
+      - name: Commit figures and report
         run: |
-          git add -f experiments/results/ report/data/ report/figures/*.pdf report/main.pdf
+          git add -f report/data/ report/figures/*.pdf report/main.pdf
           git diff --cached --quiet && exit 0
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "ci: regenerate experiment results, figures, and report"
+          git commit -m "ci: regenerate figures and report"
           git pull --rebase
           git push
