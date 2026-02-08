@@ -48,10 +48,6 @@ in-game context (we exclude removed rows, landing height, and eroded pieces).
 
 == Harmony Search Algorithm (HSA) <sec-method-hsa>
 
-// This is a nice text, but still just double what it written in the introduction about HSA.
-// One of the two should be heavily shortened or removed.
-// If we keep this, it still need a ton of references.
-
 The optimization framework employs a Harmony Search Algorithm (HSA) as described in @sec-intro-hsa. As illustrated in @hsa-flowchart, the algorithm maintains a Harmony Memory (HM) of size #params.hsa_memory_size. Each iteration generates a new candidate weight vector via three mechanisms:
 
 - *Memory Consideration*: Inheriting values from the HM with probability $r_"accept" = #params.hsa_accept_rate$.
