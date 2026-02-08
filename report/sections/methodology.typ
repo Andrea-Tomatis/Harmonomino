@@ -7,8 +7,7 @@
 
 = Methodology
 
-== Game Model
-
+// TODO: expand a bit on methodology introduction
 We implement a Tetris simulator on a $10 times 20$ board with precomputed rotation tables
 and uniformly random piece generation (no 7-bag).
 

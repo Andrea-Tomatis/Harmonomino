@@ -1,4 +1,4 @@
-#import "@preview/elsearticle:2.0.0": *
+#import "elsearticle/elsearticle.typ": *
 
 #import "@preview/zero:0.6.1": *
 #import "@preview/booktabs:0.0.4": *
@@ -12,15 +12,15 @@
     (
       name: "E. Cerpac",
       email: "e.cerpac@campus.tu-berlin.de",
-      institutions: ("a",),
+      institutions: ("",),
     ),
     (
       name: "A. Tomatis",
       email: "a.tomatis@campus.tu-berlin.de", // TODO: is this correct?
-      institutions: ("a",),
+      institutions: ("",),
     ),
   ),
-  institutions: ("a": [Technische Universität Berlin, Berlin, Germany]),
+  institutions: ("": [Technische Universität Berlin, Berlin, Germany]),
   keywords: (
     // TODO: maybe to many keywords?
     "Harmony Search Algorithm",
