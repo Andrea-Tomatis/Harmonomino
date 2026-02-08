@@ -24,21 +24,21 @@
 #align(center, image("../../report/figures/pipeline.svg", width: 85%))
 
 The agent that plays Tetris consists of the following components:
+
 Board → #n-features evaluation functions → weighted sum → best placement
 
-Mathematically the objective function to maximize with respect to the weight vector $w$ can be expressed as:
-
-#align(center, $V(s) = sum_(i=1)^#n-features w_i dot f_i (s)$) 
-
+Mathematically the objective function to maximize with respect to the weight vector $w$ can be expressed as
+$ V(s) = sum_(i=1)^#n-features w_i dot f_i (s), $
 where every evaluation function $f_i$ maps a board state $s$ to an integer value.
 
+// FIX: Find different way to fit on one slide
 #table(
   columns: (auto, 1fr),
   inset: 10pt,
   align: horizon,
   fill: (x, y) => if y == 0 { gray.lighten(50%) } else if calc.even(y) { gray.lighten(90%) },
   stroke: 0.5pt + gray,
-  
+
   [*ID*], [*Evaluation Function*],
   [ef01], [Pile Height],
   [ef02], [Holes],
@@ -57,3 +57,4 @@ where every evaluation function $f_i$ maps a board state $s$ to an integer value
   [ef18], [Row Holes],
   [ef19], [Hole Depth],
 )
+

@@ -16,6 +16,9 @@
   ),
 )
 
+// NOTE: best to choose alignment on a per-slide basis
+// #set align(horizon)
+
 #title-slide()
 
 // I'm not a fan of outlines, but let me know what you think
