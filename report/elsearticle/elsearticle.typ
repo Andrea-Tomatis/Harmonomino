@@ -169,6 +169,16 @@
     no-indent.update(true)
   }
 
+  show list: it => {
+    it
+    no-indent.update(true)
+  }
+
+  show enum: it => {
+    it
+    no-indent.update(true)
+  }
+
   show par: it => {
     if it.first-line-indent.amount == 0pt {
       return it // Prevent recursion
