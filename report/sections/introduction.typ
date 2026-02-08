@@ -7,7 +7,7 @@
 
 Tetris, the iconic puzzle video game created by Alexey Pajitnov in 1984, has attracted
 substantial interest from the artificial intelligence and optimization research communities.
-A Tetromino is a geometric shape composed of four squares connected orthogonally (i.e. at the edges and not the corners)  #cite(<Golomb1994Polyominoes>, form: "prose"), and in Tetris, a sequence of these pieces falls from the top of a $10 × 20$ game board.
+A Tetromino is a geometric shape composed of four squares connected orthogonally (i.e. at the edges and not the corners) @Golomb1994Polyominoes, and in Tetris, a sequence of these pieces falls from the top of a $10 × 20$ game board.
 The player must rotate and translate each piece to form complete horizontal rows, which are then cleared. The game
 terminates when the accumulated pieces prevent new pieces from entering the board, making
 the objective to clear as many rows as possible.
@@ -18,7 +18,8 @@ maximizing the number of cleared rows, maximizing the number of simultaneous fou
 clears ("Tetrises"), and minimizing the maximum height of occupied cells are all NP-complete
 problems. Furthermore, these objectives are inapproximable to within a factor of
 $p^(1-epsilon)$ for any $epsilon > 0$, where $p$ is the number of pieces in the sequence.
-The immense complexity of Tetris is rooted in its state space, which encompasses approximately $7×2^20$ possible configurations for a standard 20×10 board, as stated in #cite(<Algorta2019TetrisSurvey>, form: "prose"). This vast state space, combined with the stochastic nature of piece generation, makes Tetris a challenging domain for both exact algorithms and heuristic approaches. As a result, researchers have turned to metaheuristic optimization techniques to develop agents capable of playing Tetris effectively, often by optimizing a set of heuristic weights that guide the agent's decision-making process.
+The immense complexity of Tetris is rooted in its state space, which encompasses approximately $7×2^20$ possible configurations for a standard 20×10 board, as stated by #cite(<Algorta2019TetrisSurvey>, form: "prose").
+This vast state space, combined with the stochastic nature of piece generation, makes Tetris a challenging domain for both exact algorithms and heuristic approaches. As a result, researchers have turned to metaheuristic optimization techniques to develop agents capable of playing Tetris effectively, often by optimizing a set of heuristic weights that guide the agent's decision-making process.
 
 == Research Questions
 
@@ -30,7 +31,6 @@ This work is guided by three research questions, which align with the broader go
 
 - *RQ3:* How does Harmony Search compare to Cross-Entropy Search under identical feature sets and simulation conditions? <rq3>
 
-//moved on top of "related work" section, since in the instruction it's speficfied that the question we want to answer comes before the literature review.
 == Related Work
 
 // TODO: add reference(s) (maybe not Romero)
@@ -42,7 +42,7 @@ and corresponding weights $w_i$, the agent selects the move that maximizes
 $ #score-eq . $ <eq-score>
 
 The optimization problem then reduces to finding the weight vector $bold(w)$ that yields the
-highest number of cleared rows #cite(<Romero2011TetrisHarmonySearch>, form: "prose").
+highest number of cleared rows @Romero2011TetrisHarmonySearch.
 
 A variety of metaheuristic and machine learning approaches have been applied to this weight
 optimization problem. #cite(<Bohm2005Evolutionary>, form: "prose") used evolutionary algorithms,

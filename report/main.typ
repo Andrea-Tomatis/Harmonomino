@@ -52,6 +52,7 @@
   kind: table,
 ): set figure.caption(position: top)
 #set figure(placement: auto)
+#show selector(<nonumber>): set heading(numbering: none)
 
 // NOTE: This shouldn't be necessary, maybe the template does something weird?
 #set ref(supplement: it => {
@@ -102,9 +103,10 @@
 
 #bibliography("refs.bib", style: "alpha-ieee.csl")
 
-// TODO: add disclaimer about AI tools
-#v(2em) 
-#line(length: 100%, stroke: 0.5pt + gray) 
+#v(2em)
+#line(length: 100%, stroke: 0.5pt + gray)
 #text(size: 0.9em, style: "italic")[
-  *Declaration of Generative AI in Scientific Writing:* During the preparation of this work, the author(s) used Gemini in order to improve readability and ensure a correct use of the english language. After using this tool, the author(s) reviewed and edited the content as needed and take(s) full responsibility for the content of the report.
+  = Declaration of Generative AI in Scientific Writing <nonumber>
+  During the preparation of this work, the authors used generative AI tools in order to improve readability and ensure a correct use of the English language. After using these tools, the authors reviewed and edited the content as needed and take full responsibility for the content of the report.
 ]
+
