@@ -103,9 +103,7 @@ This difference in performance also shows up in the speed of execution, as shown
 // you use the script everything should work great.
 
 #figure(
-  [Placeholder],
-  // FIX: This file doesn't exist, that breaks the entire compilation
-  // image("../figures/speed_comparison.pdf"),
+  image("../figures/speed_comparison.pdf"),
   caption: [Execution time comparison of the two algorithms (seconds).],
 ) <fig-time>
 
