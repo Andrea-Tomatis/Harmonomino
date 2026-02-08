@@ -1,5 +1,5 @@
 #import "@preview/zero:0.6.1": num
-#import "../constants.typ": hv-weights, params, stable-weights, summary, ws
+#import "../constants.typ": fmt-weights, hv-weights, params, stable-weights, summary, ws
 
 = Conclusion and Discussion
 
@@ -14,19 +14,11 @@ HSA under identical conditions (#link(<rq2>)[RQ2]).
 
 Analysis of the learned weight distributions reveals some structure in the solution
 space (#link(<rq3>)[RQ3]). Certain features, such as
-#stable-weights.map(p => {
-  let idx = p.at(0).slice(1)
-  let s = p.at(1)
-  [$w_#idx$ (#s.feature)]
-}).join([, ], last: [, and ]),
+#fmt-weights(stable-weights),
 receive consistent values across seeds, with
 standard deviations below #num(params.low_variance_threshold).
 Conversely, weights for
-#hv-weights.map(p => {
-  let idx = p.at(0).slice(1)
-  let s = p.at(1)
-  [$w_#idx$ (#s.feature)]
-}).join([, ], last: [, and ]) vary widely, suggesting that the loss landscape admits a family of
+#fmt-weights(hv-weights) vary widely, suggesting that the loss landscape admits a family of
 similarly-performing solutions rather than a single optimum.
 
 == Limitations
