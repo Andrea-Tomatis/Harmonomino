@@ -14,13 +14,13 @@ Each method is evaluated over $n$ independent games using fixed seeds.
 $sigma$ denotes the sample standard deviation and _CI~95%_ is the 95% confidence interval
 for the mean, computed as $1.96 dot sigma slash sqrt(n)$.
 
-Both optimized methods
-dramatically outperform the baseline: CES achieves a mean of #summary.ces.mean cleared
-rows (median #summary.ces.median) and HSA a mean of #summary.hsa.mean (median
-#summary.hsa.median), compared to #summary.random.mean for random weights.
+Both optimized methods dramatically outperform the baseline:
+CES achieves a mean of #summary.ces.mean cleared rows (median #summary.ces.median) and HSA a mean of #summary.hsa.mean (median #summary.hsa.median),
+compared to #summary.random.mean for random weights.
 
 // TODO: make zero table work
 #figure(
+  placement: auto,
   scope: "parent",
   ztable(
     ..cols("c|CCCCC"),
@@ -52,135 +52,134 @@ rows (median #summary.ces.median) and HSA a mean of #summary.hsa.mean (median
   caption: [Evaluation statistics for each method (rows cleared over 30 fixed seeds).],
 ) <tbl-summary>
 
-@fig-dist shows the full distribution of cleared rows. The box plots confirm that both
-// NOTE: Why is this variance so high?
-optimized methods exhibit substantial variance (standard deviation #summary.ces.std for CES
-and #summary.hsa.std for HSA), yet their
-lower quartiles still comfortably exceed the best baseline outcomes.
-// NOTE: check in the end
+@fig-dist shows the full distribution of cleared rows.
+The box plots confirm that both optimized methods exhibit substantial variance (standard deviation #summary.ces.std for CES and #summary.hsa.std for HSA),
+yet their lower quartiles still comfortably exceed the best baseline outcomes.
 CES edges out HSA in both mean and median, though the distributions overlap considerably.
 
 #figure(
   image("../figures/rows_cleared_distribution.pdf"),
-  caption: [Distribution of cleared rows for HSA, CES, and baselines.],
+  caption: [Distribution of rows cleared across #params.eval_seeds evaluation seeds for each method.],
 ) <fig-dist>
 
 == Convergence Properties
 
 #figure(
+  placement: auto,
   scope: "parent",
   image("../figures/fitness_over_iter.pdf"),
-  caption: [Mean and best fitness across iterations for HSA and CES.],
+  caption: [
+    Convergence of best fitness for HSA and CES, showing the mean, standard deviation ribbon,
+    and min--max envelope across #params.training_seeds training seeds.
+  ],
 ) <fig-conv>
 
-@fig-conv traces the best and mean fitness of each optimizer over up to #params.hsa_iterations iterations. CES
-converges rapidly, quickly narrowing its sampling
-distribution around high-fitness regions. HSA follows a more gradual trajectory, with
-steady improvements throughout the run as the harmony memory slowly replaces weaker
-candidates.
+@fig-conv traces the best and mean fitness of each optimizer over up to #params.hsa_iterations iterations.
+CES converges rapidly, quickly narrowing its sampling distribution around high-fitness regions.
+HSA follows a more gradual trajectory, with steady improvements throughout the run as the harmony memory slowly replaces weaker candidates.
 
-== Early Stopping
+// NOTE: Stopping iterations figure removed: the convergence plot already shows
+// that CES converges early and HSA uses its full budget.
 
-#figure(
-  image("../figures/stopping_iterations.pdf"),
-  caption: [Iteration at which each seed's optimization terminated.],
-) <fig-stop>
-
-@fig-stop shows the actual number of iterations used by each seed before optimization
-terminated. CES employs early stopping with a fitness target of #num(params.ces_early_stop_target) and consistently
-converges well before exhausting its #params.ces_iterations\-iteration budget, typically
-finishing within 5 iterations. HSA does not use early stopping and always runs for the
-full #params.hsa_iterations iterations. This confirms that CES is dramatically more
-efficient for this problem: it finds near-optimal weights in an order of magnitude
-fewer iterations than the allotted budget, while HSA requires the entire budget and still
-shows gradual improvements through the final iterations.
-
-
-This difference in performance also shows up in the speed of execution, as shown in @fig-time, where CES runs much slower than HSA. A clear performance gap is observed between the two configurations, reflecting the different computational demands of each approach. The accurate HS method exhibits relatively stable execution times, generally ranging between 12 and 19 seconds per iteration. In contrast, the accurate CES method is significantly more computationally intensive, with processing times consistently exceeding those of HS and fluctuating between approximately 35 and 58 seconds.
-
-
-#figure(
-  image("../figures/speed_comparison.pdf"),
-  caption: [Execution time comparison of the two algorithms (seconds).],
-) <fig-time>
-
+In practice, CES employs early stopping with a fitness target of #num(params.ces_early_stop_target)
+and consistently converges well before exhausting its #params.ces_iterations\-iteration budget,
+typically finishing within 5 iterations.
+HSA does not use early stopping and always runs for the full #params.hsa_iterations iterations.
+This confirms that CES is dramatically more efficient for this problem:
+it finds near-optimal weights in an order of magnitude fewer iterations than the allotted budget,
+while HSA requires the entire budget and still shows gradual improvements through the final iterations.
 
 == Weight Distribution and Analysis
 
 // NOTE: this plot is great, maybe we should stress more that ces is much more constistent
 #figure(
   image("../figures/weights_distribution.pdf"),
-  caption: [Violin plots of learned weight distributions for HSA and CES.],
+  caption: [Distribution of learned weights for each evaluation function under HSA and CES.],
 ) <fig-violin>
 
-#figure(
-  image("../figures/weight_mean_std.pdf"),
-  caption: [Mean and standard deviation of each weight across all optimized runs.],
-) <fig-mean-std>
-
-@fig-violin and @fig-mean-std[] reveal the structure of the learned weight space. The most
-consistent weights, those with low standard deviation across seeds, include
-#fmt-weights(stable-weights, show-mean: true).
-These features are assigned decisive, stable values regardless of the optimization seed, suggesting they
-capture the most important aspects of board quality.
+@fig-violin and @fig-cat[] reveal the structure of the learned weight space.
+The most consistent weights, those with low standard deviation across seeds, include #fmt-weights(stable-weights, show-mean: true).
+These features are assigned decisive, stable values regardless of the optimization seed,
+suggesting they capture the most important aspects of board quality.
 
 In contrast, several weights show high variance:
-#fmt-weights(hv-weights) all have standard
-deviations exceeding #num(params.high_variance_threshold). This indicates that multiple weight configurations achieve
-similar performance, and that the solution landscape admits a family of good solutions rather than a single optimum.
+#fmt-weights(hv-weights) all have standard deviations exceeding #num(params.high_variance_threshold).
+This indicates that multiple weight configurations achieve similar performance,
+and that the solution landscape admits a family of good solutions rather than a single optimum.
 
 #figure(
   image("../figures/weight_correlation.pdf"),
-  caption: [Pairwise Pearson correlation of learned weights across all optimized runs.],
+  caption: [Pairwise Pearson correlation between learned weights across all #params.mass_optimize_count optimization runs.],
 ) <fig-corr>
 
-@fig-corr shows the pairwise Pearson correlation between learned weights across all optimized runs. Most off-diagonal correlations are weak, indicating that the features capture largely independent aspects of board quality. However, notable positive correlations exist between height-related features, specifically Blocks Above Highest and Pile Height, as well as between Holes and Connected Holes. Conversely, several features show near-zero or slightly negative correlations, such as Max Well Depth relative to Row Transitions, suggesting the optimization process successfully distinguishes between internal board structures and surface-level instability.
+@fig-corr shows the pairwise Pearson correlation between learned weights across all optimized runs.
+Most off-diagonal correlations are weak, indicating that the features capture largely independent aspects of board quality.
+However, notable positive correlations exist between height-related features,
+specifically Blocks Above Highest and Pile Height, as well as between Holes and Connected Holes.
+Conversely, several features show near-zero or slightly negative correlations, such as Max Well Depth relative to Row Transitions,
+suggesting the optimization process successfully distinguishes between internal board structures and surface-level instability.
 
-
-The learned weight distributions demonstrate clear directional trends for specific game-state features. As shown in the weight histograms @fig-hist, features like Row Transitions and Col Transitions consistently gravitate toward negative values, while others are aggregated by category to show their mean impact.
-
-#figure(
-  image("../figures/weight_histograms.pdf", width: 80%),
-  caption: [Frequency distribution of learned weights across all optimization runs.],
-)<fig-hist>
-
-#figure(
-  image("../figures/weight_categories.pdf", width: 80%),
-  caption: [Mean weight values grouped by feature category showing relative importance.],
-)<fig-cat>
-
-The consistency of these results is validated through clustering. The k-distance plot in @fig-cluster identifies an elbow at approximately 1.35, providing a principled epsilon value for DBSCAN. Using this parameter, the stability heatmap reveals that the majority of optimization runs converge into a single primary cluster.
+The learned weight distributions demonstrate clear directional trends for specific game-state features.
+As shown in the weight histograms @fig-hist, features like Row Transitions and Col Transitions consistently gravitate toward negative values,
+while others are aggregated by category to show their mean impact.
 
 #figure(
+  placement: auto,
+  scope: "parent",
+  image("../figures/weight_histograms.pdf"),
+  caption: [Per-feature histograms of learned weight values across all #params.mass_optimize_count optimization runs.],
+) <fig-hist>
+
+#figure(
+  placement: auto,
+  scope: "parent",
+  image("../figures/weight_categories.pdf"),
+  caption: [Mean learned weight values grouped by feature category.],
+) <fig-cat>
+
+The consistency of these results is validated through clustering.
+// NOTE: What does this mean? I don't see it in the plot.
+The k-distance plot in @fig-cluster identifies an elbow at approximately 1.35, providing a principled epsilon value for DBSCAN.
+Using this parameter, the stability heatmap reveals that the majority of optimization runs converge into a single primary cluster.
+
+#figure(
+  // TODO: These plots need some work, but I'm not sure what they are.
   grid(
-    columns: (1fr, 1.2fr),
+    align: horizon,
+    columns: (1fr, 1fr),
     gutter: 10pt,
-    image("../figures/k_distance_elbow.pdf", width: 100%), image("../figures/dbscan_stability.pdf", width: 100%),
+    image("../figures/k_distance_elbow.pdf"), image("../figures/dbscan_stability.pdf"),
   ),
-  caption: [K-distance elbow plot and DBSCAN stability analysis.],
+  caption: [K-distance elbow plot (left) and DBSCAN cluster stability across epsilon values (right).],
 ) <fig-cluster>
 
 == Consistency Analysis
-The consistency of the simulation environment was evaluated by comparing empirical results against a theoretical performance model across varying game lengths. As the game length increases, the simulation results initially follow the theoretical maximum closely but begin to plateau after a length of approximately 500.
+
+The consistency of the simulation environment was evaluated by comparing empirical results against a theoretical performance model across varying game lengths.
+As the game length increases, the simulation results initially follow the theoretical maximum closely but begin to plateau after a length of approximately 500.
 
 #figure(
-  image("../figures/consistency_test.pdf", width: 90%),
-  caption: [Comparison between simulation results and the theoretical maximum score across increasing game lengths.],
+  image("../figures/consistency_test.pdf"),
+  caption: [Agent score versus theoretical maximum across increasing game lengths.],
 ) <fig-consistency-test>
 
-The divergence between the theoretical expectation and the actual agent performance is further detailed in the absolute error analysis shown in @fig-consistency-error. While the error remains near zero for shorter durations (up to a game length of 500), it grows significantly as game length exceeds 750, eventually reaching an absolute error of over 1750 at a game length of 5000.
+The divergence between the theoretical expectation and the actual agent performance is further detailed in the absolute error analysis shown in @fig-consistency-error.
+While the error remains near zero for shorter durations (up to a game length of 500),
+it grows significantly as game length exceeds 750, eventually reaching an absolute error of over 1750 at a game length of 5000.
 
 #figure(
-  image("../figures/consistency_error.pdf", width: 90%),
-  caption: [Absolute error between theoretical and simulation results as a function of game length.],
+  image("../figures/consistency_error.pdf"),
+  caption: [Absolute error between theoretical maximum and agent score as a function of game length.],
 ) <fig-consistency-error>
 
-As illustrated in @fig-consistency-test, the agent's performance becomes decoupled from the theoretical maximum as the simulation progresses. This trend indicates that while the agent is highly consistent in short-term scenarios, long-term performance is capped by constraints that the theoretical model does not account for.
+As illustrated in @fig-consistency-test, the agent's performance becomes decoupled from the theoretical maximum as the simulation progresses.
+This trend indicates that while the agent is highly consistent in short-term scenarios,
+long-term performance is capped by constraints that the theoretical model does not account for.
 
 == Parameter Sensitivity
 
-To assess hyperparameter sensitivity for Harmony Search, we sweep three key parameters
-while holding the others fixed.
+To assess hyperparameter sensitivity for Harmony Search, we sweep three key parameters,
+namely pitch-adjustment bandwidth and rate and maximum iterations, while holding the others fixed.
 
 #figure(
   image("../figures/benchmark_bandwidth.pdf"),
@@ -199,9 +198,12 @@ while holding the others fixed.
   caption: [Effect of pitch-adjustment rate on agent score.],
 ) <fig-par>
 
-// NOTE: These results are pretty disapointing, hope everything went well. Yeah technically one could argue that those graphs are useless because for example if you keep all the parameters fixed and you vary only pitch adjustment rate the only think that could reasonably change is the convergence speed and not the final peformance. While having bandwidth=0.1 or =1.0 doesn't change much as all the weight will be scaled by a factor of 10 but they will still mantain their relative importance.
-@fig-bw shows that bandwidth has a moderate effect: too-small values restrict exploration,
-while excessively large values introduce disruptive perturbations. @fig-iter confirms
-diminishing returns beyond roughly 170 iterations, consistent with the convergence analysis
-above. @fig-par indicates that the pitch-adjustment rate has little effect as well on final
-performance.
+// NOTE: These results are pretty disapointing, hope everything went well.
+// > Yeah technically one could argue that those graphs are useless because for example if you keep all the parameters fixed and you vary only pitch adjustment rate the only think that could reasonably change is the convergence speed and not the final peformance. While having bandwidth=0.1 or =1.0 doesn't change much as all the weight will be scaled by a factor of 10 but they will still mantain their relative importance.
+// TODO: We need to think about this. Maybe we can still change the experiments to get something meaningful out of them?
+// Otherwise I would remove them to save space.
+
+@fig-bw shows that bandwidth has a moderate effect:
+too-small values restrict exploration, while excessively large values introduce disruptive perturbations.
+@fig-iter confirms diminishing returns beyond roughly 170 iterations, consistent with the convergence analysis above.
+@fig-par indicates that the pitch-adjustment rate has little effect as well on final performance.

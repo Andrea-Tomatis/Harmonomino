@@ -43,11 +43,21 @@ LOW_VARIANCE_THRESHOLD = 0.3
 WEIGHT_COLS = [f"w{i}" for i in range(1, 17)]
 
 FEATURE_NAMES: dict[str, str] = {
-    "w1": "Pile Height", "w2": "Holes", "w3": "Connected Holes",
-    "w4": "Altitude Diff", "w5": "Max Well Depth", "w6": "Sum of Wells",
-    "w7": "Blocks", "w8": "Weighted Blocks", "w9": "Row Transitions",
-    "w10": "Col Transitions", "w11": "Highest Hole", "w12": "Blocks Above Highest",
-    "w13": "Potential Rows", "w14": "Smoothness", "w15": "Row Holes",
+    "w1": "Pile Height",
+    "w2": "Holes",
+    "w3": "Connected Holes",
+    "w4": "Altitude Diff",
+    "w5": "Max Well Depth",
+    "w6": "Sum of Wells",
+    "w7": "Blocks",
+    "w8": "Weighted Blocks",
+    "w9": "Row Transitions",
+    "w10": "Col Transitions",
+    "w11": "Highest Hole",
+    "w12": "Blocks Above Highest",
+    "w13": "Potential Rows",
+    "w14": "Smoothness",
+    "w15": "Row Holes",
     "w16": "Hole Depth",
 }
 
@@ -59,6 +69,57 @@ FEATURE_CATEGORIES: dict[str, list[str]] = {
     "Blocks": ["w7", "w8", "w12"],
     "Rows": ["w13"],
 }
+
+
+# ---------------------------------------------------------------------------
+# Global academic style
+# ---------------------------------------------------------------------------
+
+
+def _apply_academic_style() -> None:
+    _serif_candidates = [
+        "New Computer Modern",
+        "CMU Serif",
+        "Times New Roman",
+        "DejaVu Serif",
+    ]
+    chosen = "serif"
+    try:
+        from matplotlib.font_manager import findSystemFonts, FontProperties
+
+        available = {Path(f).stem for f in findSystemFonts()}
+        for candidate in _serif_candidates:
+            if any(candidate.lower() in name.lower() for name in available):
+                chosen = candidate
+                break
+    except Exception:
+        pass
+
+    plt.rcParams.update(
+        {
+            "font.family": "serif",
+            "font.serif": [chosen],
+            "mathtext.fontset": "cm",
+            "font.size": 8,
+            "axes.labelsize": 8,
+            "xtick.labelsize": 7,
+            "ytick.labelsize": 7,
+            "legend.fontsize": 7,
+            "axes.grid": True,
+            "grid.linestyle": "--",
+            "grid.alpha": 0.4,
+            "figure.constrained_layout.use": True,
+            "savefig.dpi": 300,
+            "savefig.bbox": "tight",
+            "savefig.pad_inches": 0.02,
+            "xtick.direction": "in",
+            "ytick.direction": "in",
+            "axes.linewidth": 0.6,
+        }
+    )
+
+
+_apply_academic_style()
 
 
 def load_config() -> dict:
@@ -108,7 +169,8 @@ def load_stopping_iterations() -> dict[str, list[int]]:
     return result
 
 
-def load_convergence(prefix: str) -> tuple[list[int], list[float], list[float], list[float]] | None:
+def load_convergence(prefix: str) -> dict[int, dict[str, list[float]]] | None:
+    """Load convergence data, returning per-iteration raw values across seeds."""
     files = sorted(RESULTS_DIR.glob(f"convergence_{prefix}_seed-*.csv"))
     if not files:
         return None
@@ -122,13 +184,10 @@ def load_convergence(prefix: str) -> tuple[list[int], list[float], list[float], 
                 bucket = buckets.setdefault(iteration, {"best": [], "mean": [], "worst": []})
                 bucket["best"].append(float(row["best"]))
                 bucket["mean"].append(float(row["mean"]))
-                bucket["worst"].append(float(row["worst"]))
+                if "worst" in row:
+                    bucket["worst"].append(float(row["worst"]))
 
-    iterations = sorted(buckets.keys())
-    best = [float(np.mean(buckets[i]["best"])) for i in iterations]
-    mean = [float(np.mean(buckets[i]["mean"])) for i in iterations]
-    worst = [float(np.mean(buckets[i]["worst"])) for i in iterations]
-    return iterations, best, mean, worst
+    return buckets if buckets else None
 
 
 def read_weights(path: Path) -> list[float]:
@@ -209,81 +268,58 @@ def plot_distributions(data: dict[str, list[int]], plots_dir: Path) -> None:
     labels = list(sorted(data.keys()))
     values = [data[label] for label in labels]
 
-    plt.figure(figsize=(8, 4))
+    plt.figure(figsize=(3.5, 2.5))
     plt.boxplot(values, tick_labels=labels, showmeans=True)
     plt.ylabel("Rows cleared")
     plt.xticks(rotation=30, ha="right")
-    plt.tight_layout()
     plt.savefig(plots_dir / "rows_cleared_distribution.pdf")
     plt.close()
 
 
-def load_convergence(prefix: str) -> tuple[list[int], list[float], list[float], list[float]] | None:
-    files = sorted(RESULTS_DIR.glob(f"convergence_{prefix}_seed-*.csv"))
-    if not files:
-        return None
-
-    buckets: dict[int, dict[str, list[float]]] = {}
-    for path in files:
-        with path.open("r", newline="") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                iteration = int(row["iteration"])
-                bucket = buckets.setdefault(iteration, {"best": [], "mean": []})
-                bucket["best"].append(float(row["best"]))
-                bucket["mean"].append(float(row["mean"]))
-
-    iterations = sorted(buckets.keys())
-    # We calculate the mean of the "best" found across seeds, 
-    # and the standard deviation to create the ribbon
-    best_mean = [float(np.mean(buckets[i]["best"])) for i in iterations]
-    best_std = [float(np.std(buckets[i]["best"])) for i in iterations]
-    
-    return iterations, best_mean, best_std
-
-
 def plot_convergence(plots_dir: Path) -> None:
-    hsa = load_convergence("hsa")
-    ces = load_convergence("ces")
+    hsa_buckets = load_convergence("hsa")
+    ces_buckets = load_convergence("ces")
     eval_data = load_eval_data()
-    
-    if not hsa and not ces:
+
+    if not hsa_buckets and not ces_buckets:
         return
 
-    plt.figure(figsize=(10, 5))
-    ax = plt.gca()
+    fig, ax = plt.subplots(figsize=(7, 3.5))
 
-    # --- Plot HSA ---
-    if hsa:
-        iters, y_mean, y_std = hsa
-        y_mean, y_std = np.array(y_mean), np.array(y_std)
-        line, = ax.plot(iters, y_mean, label="HSA (Best)", color="#4c72b0", linewidth=2)
-        ax.fill_between(iters, y_mean - y_std, y_mean + y_std, 
-                        color=line.get_color(), alpha=0.2, label="HSA ±1 Std Dev")
+    algo_cfg = {
+        "HSA": {"buckets": hsa_buckets, "color": "#4c72b0"},
+        "CES": {"buckets": ces_buckets, "color": "#dd8452"},
+    }
 
-    # --- Plot CES ---
-    if ces:
-        iters, y_mean, y_std = ces
-        y_mean, y_std = np.array(y_mean), np.array(y_std)
-        line, = ax.plot(iters, y_mean, label="CES (Best)", color="#dd8452", linewidth=2)
-        ax.fill_between(iters, y_mean - y_std, y_mean + y_std, 
-                        color=line.get_color(), alpha=0.2, label="CES ±1 Std Dev")
+    for label, cfg in algo_cfg.items():
+        buckets = cfg["buckets"]
+        if not buckets:
+            continue
+        color = cfg["color"]
+        iterations = sorted(buckets.keys())
+        best_vals = [buckets[i]["best"] for i in iterations]
+        y_mean = np.array([np.mean(v) for v in best_vals])
+        y_std = np.array([np.std(v) for v in best_vals])
+        y_min = np.array([np.min(v) for v in best_vals])
+        y_max = np.array([np.max(v) for v in best_vals])
 
-    # --- Plot Baseline ---
+        ax.plot(iterations, y_min, color=color, linestyle=":", alpha=0.35)
+        ax.plot(iterations, y_max, color=color, linestyle=":", alpha=0.35, label=f"{label} min--max")
+        ax.fill_between(iterations, y_min, y_max, color=color, alpha=0.05)
+        std_lo = np.maximum(y_mean - y_std, y_min)
+        std_hi = np.minimum(y_mean + y_std, y_max)
+        ax.fill_between(iterations, std_lo, std_hi, color=color, alpha=0.25, label=rf"{label} $\pm 1\sigma$")
+        ax.plot(iterations, y_mean, color=color, linewidth=1.2, label=f"{label} mean")
+
     if "random" in eval_data:
         random_mean = np.mean(eval_data["random"])
-        ax.axhline(random_mean, color="black", linestyle=":", alpha=0.6, 
-                   label=f"Random Baseline ({random_mean:.1f})")
+        ax.axhline(random_mean, color="black", linestyle=":", alpha=0.6, label=f"Random baseline ({random_mean:.1f})")
 
     ax.set_xlabel("Iteration")
-    ax.set_ylabel("Fitness (Rows Cleared)")
-    ax.set_title("Optimization Convergence: Best Fitness with Variance Ribbon")
-    ax.legend(loc="lower right", frameon=True)
-    ax.grid(True, linestyle="--", alpha=0.4)
-    
-    plt.tight_layout()
-    plt.savefig(plots_dir / "fitness_over_iter.pdf")
-    plt.close()
+    ax.set_ylabel("Fitness (rows cleared)")
+    ax.legend(loc="lower right", ncol=2, frameon=True)
+    fig.savefig(plots_dir / "fitness_over_iter.pdf")
+    plt.close(fig)
 
 
 def write_stopping_csv(stops: dict[str, list[int]]) -> None:
@@ -309,24 +345,33 @@ def plot_stopping_iterations(stops: dict[str, list[int]], cfg: dict, plots_dir: 
     n_algos = len(stops)
     bar_width = 0.8 / n_algos
 
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(3.5, 2.5))
 
     for i, (algo, iters) in enumerate(sorted(stops.items())):
-        offsets = seed_indices[:len(iters)] + i * bar_width - (n_algos - 1) * bar_width / 2
-        ax.bar(offsets, iters, width=bar_width, label=algo_labels.get(algo, algo),
-               color=algo_colors.get(algo, "gray"), edgecolor="black", alpha=0.85)
-        ax.axhline(max_iters[algo], color=algo_colors.get(algo, "gray"),
-                   linestyle="--", linewidth=1, alpha=0.6,
-                   label=f"{algo_labels.get(algo, algo)} max ({max_iters[algo]})")
+        offsets = seed_indices[: len(iters)] + i * bar_width - (n_algos - 1) * bar_width / 2
+        ax.bar(
+            offsets,
+            iters,
+            width=bar_width,
+            label=algo_labels.get(algo, algo),
+            color=algo_colors.get(algo, "gray"),
+            edgecolor="black",
+            alpha=0.85,
+        )
+        ax.axhline(
+            max_iters[algo],
+            color=algo_colors.get(algo, "gray"),
+            linestyle="--",
+            linewidth=1,
+            alpha=0.6,
+            label=f"{algo_labels.get(algo, algo)} max ({max_iters[algo]})",
+        )
 
     ax.set_xticks(seed_indices)
     ax.set_xticklabels([str(i) for i in range(max_seeds)])
     ax.set_xlabel("Seed index")
     ax.set_ylabel("Iteration stopped at")
-    ax.set_title("Early Stopping: Iteration Count per Seed")
-    ax.legend(fontsize=8)
-    ax.grid(axis="y", linestyle="--", alpha=0.5)
-    fig.tight_layout()
+    ax.legend()
     fig.savefig(plots_dir / "stopping_iterations.pdf")
     plt.close(fig)
 
@@ -340,32 +385,30 @@ def plot_weight_distributions(plots_dir: Path) -> None:
 
     n_weights = len(hsa[0]) if hsa else len(ces[0])
 
-    fig, axes = plt.subplots(2, 1, figsize=(9, 6), sharex=True)
+    fig, axes = plt.subplots(2, 1, figsize=(3.5, 4.5), sharex=True)
 
     if hsa:
         hsa_arr = np.array(hsa)
         axes[0].violinplot([hsa_arr[:, i] for i in range(n_weights)], showmeans=True)
-        axes[0].set_title("HSA weight distributions")
+        axes[0].set_ylabel("HSA weight value")
     else:
         axes[0].axis("off")
 
     if ces:
         ces_arr = np.array(ces)
         axes[1].violinplot([ces_arr[:, i] for i in range(n_weights)], showmeans=True)
-        axes[1].set_title("CES weight distributions")
+        axes[1].set_ylabel("CES weight value")
     else:
         axes[1].axis("off")
 
     feature_labels = [FEATURE_NAMES.get(f"w{i}", f"w{i}") for i in range(1, n_weights + 1)]
-    axes[1].set_xlabel("Feature")
+    # axes[1].set_xlabel("Feature")
     for ax in axes:
-        ax.set_ylabel("Weight value")
         ax.set_xticks(range(1, n_weights + 1))
-        ax.set_xticklabels(feature_labels, rotation=45, ha="right", fontsize=7)
+        ax.set_xticklabels(feature_labels, rotation=45, ha="right")
 
-    plt.tight_layout()
-    plt.savefig(plots_dir / "weights_distribution.pdf")
-    plt.close()
+    fig.savefig(plots_dir / "weights_distribution.pdf")
+    plt.close(fig)
 
 
 # ---------------------------------------------------------------------------
@@ -373,14 +416,13 @@ def plot_weight_distributions(plots_dir: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def plot_sweep(filename: str, plots_dir: Path, *, title: str, xlabel: str,
-               ylabel: str = "score", reference: float = 0, padding: float = 1.0) -> None:
+def plot_sweep(filename: str, plots_dir: Path, *, xlabel: str, ylabel: str = "score", reference: float = 0) -> None:
     result = load_sweep_csv(filename)
     if result is None:
         return
     x, y = result
 
-    plt.figure(figsize=(8, 4))
+    plt.figure(figsize=(3.5, 2.5))
 
     if reference > 0:
         plt.plot(x, [reference] * len(x), "--", color="black", label="theoretical maximum")
@@ -391,19 +433,16 @@ def plot_sweep(filename: str, plots_dir: Path, *, title: str, xlabel: str,
     plt.plot(x, y, "o", color="black", label="simulation result")
 
     if y:
-        y_min, y_max = min(y), max(y)
-        margin = (y_max - y_min) * padding
-        if margin == 0:
-            plt.ylim(y_min - 1, y_min + 1)
-        else:
-            plt.ylim(y_min - margin, y_max + margin)
+        all_vals = list(y)
+        if reference > 0:
+            all_vals.append(reference)
+        y_lo, y_hi = min(all_vals), max(all_vals)
+        span = y_hi - y_lo if y_hi != y_lo else 1.0
+        plt.ylim(y_lo - 0.1 * span, y_hi + 0.1 * span)
 
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    plt.title(title)
-    plt.grid(True)
     plt.legend()
-    plt.tight_layout()
     plt.savefig(plots_dir / f"{Path(filename).stem}.pdf")
     plt.close()
 
@@ -420,29 +459,23 @@ def plot_consistency(plots_dir: Path) -> None:
     x, y = result
 
     # Score vs game length with theoretical max
-    plt.figure(figsize=(8, 4))
+    plt.figure(figsize=(3.5, 2.5))
     z = [int(xi) / 2.5 - 1 for xi in x]
     plt.plot(x, z, "--", color="black", label="theoretical maximum")
     plt.plot(x, y, "o", color="black", label="simulation result")
-    plt.xlabel("game length")
-    plt.ylabel("score")
-    plt.title("Consistency Test")
-    plt.grid(True)
+    plt.xlabel("Game length")
+    plt.ylabel("Score")
     plt.legend()
-    plt.tight_layout()
     plt.savefig(plots_dir / "consistency_test.pdf")
     plt.close()
 
     # Absolute error
-    plt.figure(figsize=(8, 4))
+    plt.figure(figsize=(3.5, 2.5))
     errors = [abs(int(x[i]) / 2.5 - 1 - y[i]) for i in range(len(x))]
     plt.plot(x, errors, "o", color="black", label="absolute error")
-    plt.xlabel("game length")
-    plt.ylabel("absolute error")
-    plt.title("Consistency Test: Absolute Error")
-    plt.grid(True)
+    plt.xlabel("Game length")
+    plt.ylabel("Absolute error")
     plt.legend()
-    plt.tight_layout()
     plt.savefig(plots_dir / "consistency_error.pdf")
     plt.close()
 
@@ -462,14 +495,11 @@ def plot_weight_mean_std(df: pd.DataFrame, plots_dir: Path) -> None:
 
     labels = [FEATURE_NAMES.get(c, c) for c in cols]
 
-    plt.figure(figsize=(12, 6))
-    plt.bar(labels, means, yerr=stds, capsize=5, color="skyblue", edgecolor="navy", alpha=0.8)
+    plt.figure(figsize=(3.5, 3.0))
+    plt.bar(labels, means, yerr=stds, capsize=3, color="skyblue", edgecolor="navy", alpha=0.8)
     plt.xticks(rotation=45, ha="right")
-    plt.xlabel("Feature")
-    plt.ylabel("Average Value")
-    plt.title("Mean and Standard Deviation of Learned Weights")
-    plt.grid(axis="y", linestyle="--", alpha=0.7)
-    plt.tight_layout()
+    # plt.xlabel("Feature")
+    plt.ylabel("Average value")
     plt.savefig(plots_dir / "weight_mean_std.pdf")
     plt.close()
 
@@ -487,11 +517,11 @@ def plot_weight_mean_std(df: pd.DataFrame, plots_dir: Path) -> None:
 
 
 def plot_correlation_heatmap(df: pd.DataFrame, plots_dir: Path) -> None:
-    corr = df.corr(numeric_only=True)
-    labels = [FEATURE_NAMES.get(c, c) for c in corr.columns]
+    cols = [c for c in WEIGHT_COLS if c in df.columns]
+    corr = df[cols].corr()
+    labels = [FEATURE_NAMES.get(c, c) for c in cols]
 
-    sns.set_theme(style="white")
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(3.5, 3.5))
     sns.heatmap(
         corr,
         xticklabels=labels,
@@ -505,7 +535,6 @@ def plot_correlation_heatmap(df: pd.DataFrame, plots_dir: Path) -> None:
     )
     plt.xticks(rotation=45, ha="right")
     plt.yticks(rotation=0)
-    plt.tight_layout()
     plt.savefig(plots_dir / "weight_correlation.pdf")
     plt.close()
 
@@ -515,8 +544,7 @@ def plot_weight_histograms(df: pd.DataFrame, plots_dir: Path) -> None:
     if not cols:
         return
 
-    fig, axes = plt.subplots(nrows=4, ncols=4, figsize=(16, 14))
-    fig.suptitle("Weight Distributions by Feature", fontsize=22, fontweight="bold")
+    fig, axes = plt.subplots(nrows=4, ncols=4, figsize=(9, 6), sharex="col", sharey="all")
 
     axes_flat = axes.flatten()
 
@@ -525,17 +553,18 @@ def plot_weight_histograms(df: pd.DataFrame, plots_dir: Path) -> None:
             break
         label = FEATURE_NAMES.get(col, col)
         sns.histplot(df[col], kde=True, ax=axes_flat[i], color="royalblue", bins=20)
-        axes_flat[i].set_title(f"{label} ({col})", fontsize=12)
+        axes_flat[i].set_title(label)
         axes_flat[i].set_xlabel("")
-        axes_flat[i].set_ylabel("Frequency")
+
+    for ax in axes[:, 0]:
+        ax.set_ylabel("Frequency")
 
     # Hide unused axes
     for j in range(len(cols), len(axes_flat)):
         axes_flat[j].axis("off")
 
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.savefig(plots_dir / "weight_histograms.pdf")
-    plt.close()
+    fig.savefig(plots_dir / "weight_histograms.pdf")
+    plt.close(fig)
 
 
 def plot_pairwise_distances(df: pd.DataFrame, plots_dir: Path) -> None:
@@ -561,12 +590,10 @@ def plot_pairwise_distances(df: pd.DataFrame, plots_dir: Path) -> None:
 
     history_df = pd.DataFrame(cluster_history, index=np.round(eps_values, 2))
 
-    plt.figure(figsize=(14, 8))
-    sns.heatmap(history_df, cmap="viridis", cbar_kws={"label": "Cluster ID (-1 is Noise)"})
-    plt.title("DBSCAN Cluster Stability: Cluster ID vs. Epsilon Value")
-    plt.xlabel("Data Point Index (Run #)")
-    plt.ylabel("Epsilon (eps)")
-    plt.tight_layout()
+    plt.figure(figsize=(3.5, 2.5))
+    sns.heatmap(history_df, cmap="viridis", cbar_kws={"label": "Cluster ID"})
+    plt.xlabel("Run index")
+    plt.ylabel("Epsilon")
     plt.savefig(plots_dir / "dbscan_stability.pdf")
     plt.close()
 
@@ -574,15 +601,12 @@ def plot_pairwise_distances(df: pd.DataFrame, plots_dir: Path) -> None:
     nearest_neighbor_distances = np.sort(full_dist_matrix, axis=1)[:, 1]
     sorted_distances = np.sort(nearest_neighbor_distances)
 
-    plt.figure(figsize=(8, 5))
+    plt.figure(figsize=(3.5, 2.5))
     plt.plot(sorted_distances)
-    plt.axhline(y=avg_dist / 2, color="r", linestyle="--", label="Average Distance / 2")
-    plt.title("k-Distance Plot (Finding the Elbow)")
+    plt.axhline(y=avg_dist / 2, color="r", linestyle="--", label="Avg. distance / 2")
     plt.xlabel("Points sorted by distance")
-    plt.ylabel("Distance to nearest neighbor (eps)")
+    plt.ylabel("Distance to nearest neighbor")
     plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
     plt.savefig(plots_dir / "k_distance_elbow.pdf")
     plt.close()
 
@@ -601,15 +625,13 @@ def plot_pca(df: pd.DataFrame, plots_dir: Path) -> None:
     pca_df = pd.DataFrame(pca_results, columns=["PC1", "PC2"])
     pca_df["Score"] = numeric["Score"].values
 
-    plt.figure(figsize=(8, 6))
-    scatter = plt.scatter(pca_df["PC1"], pca_df["PC2"], c=pca_df["Score"],
-                          cmap="viridis", edgecolors="k", s=60, alpha=0.8)
+    plt.figure(figsize=(3.5, 3.0))
+    scatter = plt.scatter(
+        pca_df["PC1"], pca_df["PC2"], c=pca_df["Score"], cmap="viridis", edgecolors="k", s=30, alpha=0.8
+    )
     plt.colorbar(scatter, label="Score")
     plt.xlabel(f"PC1 ({pca.explained_variance_ratio_[0]:.1%} variance)")
     plt.ylabel(f"PC2 ({pca.explained_variance_ratio_[1]:.1%} variance)")
-    plt.title("PCA of Optimized Weight Vectors")
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
     plt.savefig(plots_dir / "pca_weights.pdf")
     plt.close()
 
@@ -654,17 +676,16 @@ def plot_weight_categories(df: pd.DataFrame, plots_dir: Path) -> None:
     yerr = [float(stds[w]) for w in ordered_weights]
     x = np.arange(len(ordered_weights))
 
-    fig, ax = plt.subplots(figsize=(14, 5))
-    ax.bar(x, y, yerr=yerr, capsize=4, color=colors, edgecolor="black", alpha=0.85)
+    fig, ax = plt.subplots(figsize=(7, 3.0))
+    ax.bar(x, y, yerr=yerr, capsize=3, color=colors, edgecolor="black", alpha=0.85)
     ax.set_xticks(x)
-    ax.set_xticklabels(x_labels, rotation=45, ha="right", fontsize=8)
+    ax.set_xticklabels(x_labels, rotation=45, ha="right")
     ax.set_ylabel("Mean weight value")
-    ax.set_title("Learned Weights by Feature Category")
     ax.axhline(0, color="black", linewidth=0.5)
-    ax.grid(axis="y", linestyle="--", alpha=0.5)
 
     # Add category separators and legend patches.
     from matplotlib.patches import Patch
+
     legend_handles = []
     prev_cat = None
     for i, cat in enumerate(category_labels):
@@ -674,8 +695,7 @@ def plot_weight_categories(df: pd.DataFrame, plots_dir: Path) -> None:
             legend_handles.append(Patch(facecolor=palette.get(cat, "gray"), label=cat))
         prev_cat = cat
 
-    ax.legend(handles=legend_handles, loc="upper left", fontsize=8)
-    fig.tight_layout()
+    ax.legend(handles=legend_handles, loc="upper left")
     fig.savefig(plots_dir / "weight_categories.pdf")
     plt.close(fig)
 
@@ -759,12 +779,9 @@ def main() -> None:
     plot_weight_distributions(plots_dir)
 
     # --- Parameter sweep plots ---
-    plot_sweep("benchmark_bandwidth.csv", plots_dir,
-               title="Benchmark Bandwidth", xlabel="bandwidth", reference=199, padding=100)
-    plot_sweep("benchmark_iterations.csv", plots_dir,
-               title="Benchmark MaxIter", xlabel="maximum number of iterations", reference=199, padding=1)
-    plot_sweep("benchmark_pitch_adj_rate.csv", plots_dir,
-               title="Benchmark Pitch Adjustment Rate", xlabel="rate", reference=199, padding=100)
+    plot_sweep("benchmark_bandwidth.csv", plots_dir, xlabel="Bandwidth", reference=199)
+    plot_sweep("benchmark_iterations.csv", plots_dir, xlabel="Maximum iterations", reference=199)
+    plot_sweep("benchmark_pitch_adj_rate.csv", plots_dir, xlabel="Rate", reference=199)
 
     # --- Consistency test ---
     plot_consistency(plots_dir)
