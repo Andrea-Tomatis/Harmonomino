@@ -19,9 +19,14 @@ description = "Compile report (always runs — fast)"
 depends = ["plots"]
 run = "typst compile report/main.typ"
 
+[tasks.presentation]
+description = "Compile presentation"
+depends = ["plots"]
+run = "typst compile --root . presentation/main.typ"
+
 [tasks.pipeline]
-description = "Run full pipeline: experiments → plots → report"
-depends = ["report"]
+description = "Run full pipeline: experiments → plots → report + presentation"
+depends = ["report", "presentation"]
 
 [tasks.check]
 description = "Run cargo check + clippy + tests"

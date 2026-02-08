@@ -107,9 +107,12 @@ jobs:
       - name: Compile report
         run: typst compile report/main.typ
 
+      - name: Compile presentation
+        run: typst compile --root . presentation/main.typ
+
       - name: Commit figures and report
         run: |
-          git add -f report/data/ report/figures/*.pdf report/main.pdf
+          git add -f report/data/ report/figures/*.pdf report/main.pdf presentation/main.pdf
           git diff --cached --quiet && exit 0
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
