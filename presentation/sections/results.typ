@@ -86,6 +86,124 @@
   )
 ]
 
+
+//
+// 
+//TODO: Implement here the plots for HSA only
+// 
+// 
+// 
+
+---
+
+// Slide 8: Parameter Sensitivity (HSA)
+#slide[
+  == HSA Hyperparameter Sensitivity
+  
+  Analysis of Bandwidth, Pitch Adjustment Rate ($r_"pa"$), and Max Iterations.
+
+  #grid(
+    columns: (1fr, 1fr, 1fr),
+    gutter: 1em,
+    [
+      #figure(image("../../report/figures/benchmark_bandwidth.pdf", width: 100%))
+      *Bandwidth:* Excessive values disrupt fine-tuning; very small values risk local optima.
+    ],
+    [
+      #figure(image("../../report/figures/benchmark_pitch_adj_rate.pdf", width: 100%))
+      *Pitch Adj. Rate:* Shows minimal impact on final performance in this configuration.
+    ],
+    [
+      #figure(image("../../report/figures/benchmark_iterations.pdf", width: 100%))
+      *Max Iterations:* Clear diminishing returns observed beyond roughly 170 iterations.
+    ]
+  )
+  
+  #v(1fr)
+  #block(
+    fill: gray.lighten(90%), 
+    inset: 8pt, 
+    radius: 4pt,
+    width: 100%,
+    [*Note:* While relative performance is stable, these parameters primarily influence the *rate* of convergence and search robustness.]
+  )
+]
+
+---
+
+// Slide 7: Clustering and Stability (DBSCAN)
+== Convergence Stability (DBSCAN)
+#slide[
+  
+  Are the agents finding the same solution, or many different ones?
+
+  #figure(
+    grid(
+      columns: (1fr, 1.2fr),
+      gutter: 10pt,
+      image("../../report/figures/k_distance_elbow.pdf", width: 100%), 
+      image("../../report/figures/dbscan_stability.pdf", width: 100%),
+    ),
+    caption: [DBSCAN identifies a single primary cluster of "good" solutions.],
+  )
+
+  - *The "Elbow":* Identified at $epsilon approx 1.35$.
+]
+
+== Convergence Stability (DBSCAN)
+#slide[
+
+  #figure(
+      image("../../report/figures/weight_categories.pdf", width: 80%),
+    caption: [Most likely category found with DBSCAN per weight.],
+  )
+  - *Primary Cluster:* Most seeds converge to a similar region in the high-dimensional weight space, validating the robustness of the heuristic set.
+]
+
+// Slide 9: Simulation Error Analysis
+== Theoretical Divergence (Error Analysis)
+#slide[
+  
+  As games scale, the "Absolute Error" relative to the theoretical maximum increases.
+
+  #grid(
+    columns: (1fr, 1.2fr),
+    gutter: 1em,
+    [
+      *The Plateau Effect:*
+      - *Short games (< 500 lines):* Error remains near zero.
+      - *Long games (> 750 lines):* Error grows sharply, exceeding 1750 by line 5000.
+      
+      *Conclusion:* Current linear heuristics cannot fully compensate for board "exhaustion" in long-horizon play.
+    ],
+    figure(
+      image("../../report/figures/consistency_error.pdf", width: 100%),
+      caption: [Absolute error vs. game length.],
+    )
+  )
+]
+
+// Slide 5: Stability and Consistency
+== Simulation Consistency
+#slide[
+  We tested the agent against a theoretical performance model to check for "plateaus."
+
+  #grid(
+    columns: (1fr, 1fr),
+    gutter: 1em,
+    figure(
+      image("../../report/figures/consistency_test.pdf", width: 100%),
+      caption: [Performance vs. Theoretical Max],
+    ),
+    [
+      *Findings:*
+      - *Short Term:* Near-perfect alignment with theory up to ~500 rows.
+      - *Long Term:* Error grows significantly after 750 rows.
+      - *Implication:* The agents encounter "unsolvable" board states or structural constraints not captured by the simple linear heuristic model.
+    ]
+  )
+]
+
 == Performance
 
 #align(center,
@@ -126,3 +244,217 @@
 ][
   #image("../../report/figures/benchmark_pitch_adj_rate.pdf", width: 100%)
 ]
+
+
+
+== Cross-Entropy: Distribution Learning
+#slide[
+  
+  
+  Unlike HS, which tracks individual "members", CES tracks a *probability distribution* (mean $mu$ and variance $sigma^2$) that represents where the best weights likely live.
+
+  + *Sampling:* Generate a large batch of candidate weight vectors (e.g., 100) by sampling from the current Gaussian distribution.
+  + *The "Elite" Selection:* Test every candidate in a Tetris simulation. Select the top 10% (the "Elite Set").
+  + *Distribution Shift:* Calculate the new $mu$ and $sigma^2$ based *only* on the Elite Set. 
+  
+  The distribution literally "moves" and "shrinks" toward the highest-scoring regions of the fitness landscape over multiple generations.
+]
+
+
+
+== Maintaining Exploration (Noisy CES)
+#slide[
+  
+  A major challenge in Tetris is the *stochastic noise*—a weight might perform well just because it got "lucky" pieces. This often leads to *Variance Collapse*.
+
+  * *The Failure:* The variance ($sigma^2$) shrinks to zero too quickly. The algorithm becomes "blind" to other possibilities and stops exploring.
+  * *The Fix:* *Additive Noise.* We manually inject noise into the update rule:
+    $ sigma^2_(t+1) = sigma^2_"elite" + Z(t) $
+  * *The Benefit: By ensuring the standard deviation never drops below a certain threshold, the search is forced to remain wide enough to find general, robust weights rather than "lucky" ones.
+]
+
+== Comparison: HS vs. CES
+#slide[
+  
+  
+  #table(
+    columns: (1fr, 1fr, 1fr),
+    inset: 8pt,
+    fill: (x, y) => if y == 0 { gray.lighten(60%) } else if calc.even(y) { gray.lighten(90%) },
+    [*Feature*], [*Harmony Search*], [*Cross-Entropy*],
+    [Representation], [Individual vectors], [Probability distribution],
+    [Improvement], [Replaces worst member], [Updates mean and variance],
+    [Diversity], [Randomization ($r_"rand"$)], [Additive noise ($Z$)],
+    [Strength], [Simple, fast updates], [Excellent in high dimensions]
+  )
+]
+
+== Flowchart
+#slide[
+  #align(horizon + center)[
+    #figure(
+      scale(180%, include "../../report/figures/ces_flowchart.typ"),
+    )
+  ]
+]
+
+
+//
+// 
+//TODO: Implement here the plots for CES only
+// 
+// 
+
+
+
+== Performance Comparison HSA vs. CES
+// Slide 1: Agent Performance Overview
+#slide[
+  
+  Both optimization methods significantly outperform the random baseline, with CES showing a slight edge in raw performance.
+
+  #columns(2)[
+    #table(
+      columns: (auto, auto, auto),
+      inset: 6pt,
+      stroke: 0.5pt + gray,
+      fill: (x, y) => if y == 0 { gray.lighten(60%) },
+      [*Method*], [*Mean*], [*Median*],
+      [CES], [#summary.ces.mean], [#summary.ces.median],
+      [HSA], [#summary.hsa.mean], [#summary.hsa.median],
+      [Random], [#summary.random.mean], [#summary.random.median],
+    )
+    
+    *Key Takeaways:*
+    - CES and HSA distributions overlap significantly.
+    - Both maintain a high "floor": lower quartiles exceed the best baseline results.
+    - Performance approaches theoretical limits for short-horizon games.
+  ]
+
+  #figure(
+    image("../../report/figures/rows_cleared_distribution.pdf", width: 70%),
+    caption: [Clear separation between optimized agents and baseline.],
+  )
+]
+
+---
+
+// Slide 2: Convergence and Efficiency
+== Convergence and Search Efficiency
+#slide[
+  
+  
+  There is a massive disparity in how quickly each algorithm "solves" the weight space.
+
+  #grid(
+    columns: (1.2fr, 1fr),
+    gutter: 1em,
+    figure(
+      image("../../report/figures/fitness_over_iter.pdf", width: 100%),
+      caption: [CES (Rapid) vs. HSA (Gradual)],
+    ),
+    [
+      *Cross-Entropy (CES):*
+      - *Extremely Efficient:* Typically converges in $< 5$ iterations.
+      - Rapidly narrows sampling distribution.
+      - *Trade-off:* Higher CPU cost per iteration (35–58s).
+    ]
+  )
+]
+
+== Convergence and Search Efficiency
+#slide[
+  
+  
+  There is a massive disparity in how quickly each algorithm "solves" the weight space.
+
+  #grid(
+    columns: (1.2fr, 1fr),
+    gutter: 1em,
+    figure(
+      image("../../report/figures/fitness_over_iter.pdf", width: 100%),
+      caption: [CES (Rapid) vs. HSA (Gradual)],
+    ),
+    [
+      *Harmony Search (HSA):*
+      - *Steady Improvement:* Requires the full #params.hsa_iterations budget.
+      - *Trade-off:* Lower CPU cost per iteration (12–19s).
+    ]
+  )
+]
+
+---
+
+// Slide 3: Weight Analysis - Stability
+== Learned Weight Analysis
+#slide[
+  
+  Which board features actually matter for long-term survival?
+
+  #grid(
+    columns: (1fr, 1fr),
+    gutter: 1em,
+    figure(
+      image("../../report/figures/weight_mean_std.pdf", width: 100%),
+      caption: [Weight stability across independent runs.],
+    ),
+    [
+      *Stable Features (Low $sigma$):*
+      - #fmt-weights(stable-weights)
+      - These are universally critical for board quality.
+
+      *Volatile Features (High $sigma$):*
+      - #fmt-weights(hv-weights)
+      - High variance suggests the landscape has multiple "good" local optima or redundant features.
+    ]
+  )
+]
+
+---
+
+// Slide 4: Weight Analysis - Correlations and Distribution
+== Feature Relationships and Directionality
+#slide[
+  #grid(
+    columns: (1fr, 1.2fr),
+    gutter: 10pt,
+    [
+      *Structure of the Solution:*
+      - *Positive Correlation:* Height-related features (Pile Height & Blocks Above).
+      - *Negative Trends:* "Transition" features (Row/Col) consistently move toward negative weights to penalize surface instability.
+      - *Independence:* Most off-diagonal correlations are weak, validating the choice of features.
+    ],
+    figure(
+      image("../../report/figures/weight_correlation.pdf", width: 100%),
+      caption: [Pearson correlation of learned weights.],
+    )
+  )
+]
+
+---
+
+
+// Slide 6: Weight Distributions (Violin Plots)
+== Weight Distribution Analysis
+#slide[
+  
+  The learned weights reveal how different optimizers "view" the Tetris feature space.
+
+  #grid(
+    columns: (1.2fr, 1fr),
+    gutter: 1em,
+    figure(
+      image("../../report/figures/weights_distribution.pdf", width: 100%),
+      caption: [CES shows higher consistency (tighter violins).],
+    ),
+    [
+      *Key Observations:*
+      - *CES Consistency:* Generally produces tighter clusters, suggesting it finds a more precise "global" region.
+      - *HSA Diversity:* Wider distributions indicate HSA explores a broader range of the solution landscape.
+      - *Directionality:* Both agree on the polarity of key features (e.g., negative weights for transitions).
+    ]
+  )
+]
+
+---
+
