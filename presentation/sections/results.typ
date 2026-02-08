@@ -96,9 +96,8 @@
 
 ---
 
-// Slide 8: Parameter Sensitivity (HSA)
+== HSA Hyperparameter Sensitivity
 #slide[
-  == HSA Hyperparameter Sensitivity
   
   Analysis of Bandwidth, Pitch Adjustment Rate ($r_"pa"$), and Max Iterations.
 
@@ -204,47 +203,6 @@
   )
 ]
 
-== Performance
-
-#align(center,
-  image("../../report/figures/rows_cleared_distribution.pdf", width: 75%)
-)
-
-#slide(composer: (1fr, 1fr))[
-  === HSA
-  Mean: #summary.hsa.mean rows \
-  Median: #summary.hsa.median rows
-][
-  === CES
-  Mean: #summary.ces.mean rows \
-  Median: #summary.ces.median rows
-]
-
-== Convergence
-
-#align(center,
-  image("../../report/figures/fitness_over_iter.pdf", width: 80%)
-)
-
-== Weight Analysis
-
-#align(center,
-  image("../../report/figures/weight_mean_std.pdf", width: 75%)
-)
-
-*Most stable:* #fmt-weights(stable-weights) \
-*High variance:* #fmt-weights(hv-weights)
-
-== Parameter Sensitivity
-
-#slide(composer: (1fr, 1fr, 1fr))[
-  #image("../../report/figures/benchmark_bandwidth.pdf", width: 100%)
-][
-  #image("../../report/figures/benchmark_iterations.pdf", width: 100%)
-][
-  #image("../../report/figures/benchmark_pitch_adj_rate.pdf", width: 100%)
-]
-
 
 
 == Cross-Entropy: Distribution Learning
@@ -338,6 +296,28 @@
 ]
 
 ---
+
+// Slide 10: Execution Speed & Computational Demand
+== Computational Performance Comparison
+#slide[
+    #grid(
+    columns: (1.2fr, 1fr),
+    gutter: 1.5em,
+    figure(
+      image("../../report/figures/speed_comparison.pdf", width: 100%),
+      caption: [Execution time per iteration (seconds).],
+    ),
+    [
+      *Harmony Search (HSA):*
+      - *Fast & Stable:* 12–19 seconds per iteration.
+      - Lower overhead allows for the high iteration counts (#params.hsa_iterations) required for convergence.
+
+      *Cross-Entropy (CES):*
+      - *Resource Intensive:* 35–58 seconds per iteration.
+      - The complexity stems from sampling and simulating large batches to update the distribution.
+    ]
+  )
+]
 
 // Slide 2: Convergence and Efficiency
 == Convergence and Search Efficiency
@@ -437,8 +417,6 @@
 // Slide 6: Weight Distributions (Violin Plots)
 == Weight Distribution Analysis
 #slide[
-  
-  The learned weights reveal how different optimizers "view" the Tetris feature space.
 
   #grid(
     columns: (1.2fr, 1fr),
@@ -454,6 +432,7 @@
       - *Directionality:* Both agree on the polarity of key features (e.g., negative weights for transitions).
     ]
   )
+
 ]
 
 ---

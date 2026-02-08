@@ -6,13 +6,67 @@
 
 == Findings
 
-#slide(composer: (1fr, 1fr))[
-  === Contributions
-  - Both HSA and CES successfully optimize Tetris agent weights
-  - #n-features feature evaluation covers pile, hole, well, row, and block metrics
-  - Subset of weights converge to stable values across runs
-  - Automated pipeline enables reproducible experiments
-][
+#slide[
+  == Research Questions & Findings
+
+  #grid(
+    columns: (1fr, 1fr, 1fr),
+    column-gutter: 1em,
+    
+    // RQ1 Block
+    block(
+      fill: blue.lighten(95%),
+      stroke: 0.5pt + blue.lighten(50%),
+      inset: 12pt,
+      radius: 6pt,
+      height: 90%,
+      [
+        === RQ1: HSA
+        *How effective is HSA at weight optimization?*
+        #v(0.5em)
+        #set text(size: 18pt)
+        *Verdict:* #text(fill: orange.darken(20%))[Suboptimal but Effective.] 
+        Outperforms random weights and hand-tuned baselines significantly.
+      ]
+    ),
+
+    // RQ2 Block
+    block(
+      fill: green.lighten(95%),
+      stroke: 0.5pt + green.lighten(50%),
+      inset: 12pt,
+      radius: 6pt,
+      height: 90%,
+      [
+        === RQ2: CES
+        *How does CES compare to HSA?*
+        #v(0.5em)
+        #set text(size: 18pt)
+        *Verdict:* #text(fill: green.darken(20%))[Superior Performance.] 
+        Outperforms HSA in convergence speed and score, despite higher per-iteration costs.
+      ]
+    ),
+
+    // RQ3 Block
+    block(
+      fill: purple.lighten(95%),
+      stroke: 0.5pt + purple.lighten(50%),
+      inset: 12pt,
+      radius: 6pt,
+      height: 90%,
+      [
+        === RQ3: Stability
+        *Do optimized weights converge to stable values?*
+        #v(0.5em)
+        #set text(size: 18pt)
+        *Verdict:* #text(fill: purple.darken(20%))[Partial Convergence.] 
+        Core weights are stable; secondary weights vary due to landscape stochasticity.
+      ]
+    )
+  )
+]
+
+#slide()[
   === Limitations
   - Single-piece lookahead only
   - Fixed game length caps observable performance
