@@ -12,7 +12,6 @@ The player must rotate and translate each piece to form complete horizontal rows
 terminates when the accumulated pieces prevent new pieces from entering the board, making
 the objective to clear as many rows as possible.
 
-// TODO: change prose citation to use "... et al."
 #cite(<Demaine2003TetrisHard>, form: "prose") proved that in the offline version of Tetris,
 maximizing the number of cleared rows, maximizing the number of simultaneous four-row
 clears ("Tetrises"), and minimizing the maximum height of occupied cells are all NP-complete
@@ -63,6 +62,8 @@ premature convergence of the sampling distribution.
 //
 // At this point we are at half of the length of the paper
 // so might want to keep this short.
+// Instead I would shorten/remove the huge sections on general explanations of HSA and CES in the methodology section. That should be reserved four our specific implementation details.
+// TODO: maybe we can copy some of the text from methodology to here and fill in the references?
 
 == The Harmony Search Algorithm
 
@@ -73,7 +74,8 @@ from memory, (2) play something similar to a known piece with slight variations,
 compose freely from random notes. These three strategies correspond to the three core
 mechanisms of HS: harmony memory consideration, pitch adjustment, and randomization.
 
-The Harmony Search (HS) algorithm maintains a harmony memory (HM), a population of solution vectors. Each iteration constructs a new solution by either copying a value from HM (probability $r_"accept"$) or sampling randomly, with optional perturbation (probability $r_"pa"$). If the candidate outperforms the worst solution in HM, it replaces it. HS considers all solutions in HM, unlike genetic algorithms, which recombine only two parents #cite(<Geem2001HarmonySearch>, form: "prose"), #cite(<Yang2009HSMetaheuristic>, form: "prose").
+The Harmony Search (HS) algorithm maintains a harmony memory (HM), a population of solution vectors. Each iteration constructs a new solution by either copying a value from HM (probability $r_"accept"$) or sampling randomly, with optional perturbation (probability $r_"pa"$). If the candidate outperforms the worst solution in HM, it replaces it. HS considers all solutions in HM, unlike genetic algorithms, which recombine only two parents @Geem2001HarmonySearch @Yang2009HSMetaheuristic.
+// TODO: better cite sources (not just prose citations)
 
 #cite(<Romero2011TetrisHarmonySearch>, form: "prose") were the first to apply Harmony Search to the
 Tetris weight optimization problem. Using 19 board feature functions and a harmony memory of

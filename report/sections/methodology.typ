@@ -25,7 +25,7 @@ The complete optimization pipeline (simulator + optimizer) is shown in @pipeline
 #figure(
   image("../figures/pipeline.svg"),
   caption: [
-    Optimization pipeline. 
+    Optimization pipeline.
   ],
 ) <pipeline>
 
@@ -49,8 +49,9 @@ in-game context (we exclude removed rows, landing height, and eroded pieces).
 
 == Harmony Search Algorithm (HSA) <sec-method-hsa>
 
-// TODO: commented out for now, because I think it is more suitable in the introduction with proper citations.
-// Or maybe instead, we reference @sec-method-hsa from the introduction. (Yes, I like that)
+// This is a nice text, but still just double what it written in the introduction about HSA.
+// One of the two should be heavily shortened or removed.
+// If we keep this, it still need a ton of references.
 
 The optimization framework utilizes a Harmony Search Algorithm (HSA) to iteratively refine the agent's heuristic weights.
 The process begins by initializing a Harmony Memory (HM), a population of weight vectors, where each individual is evaluated using the simulation logic described previously. To account for the inherent randomness of piece sequences, the framework can be configured to average the performance metrics over multiple stochastic runs, ensuring that the resulting weight sets are robust rather than merely lucky.
