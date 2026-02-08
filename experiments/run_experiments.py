@@ -2,7 +2,7 @@ import csv
 import random
 import shutil
 import subprocess
-import tomllib
+import tomli as tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]

@@ -20,14 +20,12 @@ These valid placements are explored across all possible combinations of rotation
 $ #score-eq , $
 where $f_i (s)$ are board heuristics and $w_i$ are learned weights. The move yielding the highest score is executed, updating the global game state before the next piece is generated. This cycle continues until the board reaches a terminal "game over" condition or a predefined maximum move limit is reached, providing a deterministic and high-performance methodology for assessing the efficacy of different heuristic weight configurations.
 
-The complete optimization pipeline (simulator + optimizer) is shown in @pipeline. // TODO: Some additional text
+The complete optimization pipeline (simulator + optimizer) is shown in @pipeline. The agent's heuristic weights are optimized by an outer loop (HSA or CES) that iteratively generates candidate weight sets, which are evaluated by the inner Tetris simulator. The simulator computes the best move for each piece based on the current board state and the provided weights, returning a fitness score that guides the optimization process.
 
-// FIX: this figure contains mistakes, and I don't understand it. Also pdf, svg or typst would be nicer.
 #figure(
-  image("../figures/pipeline.png"),
+  image("../figures/pipeline.svg"),
   caption: [
-    // TODO: extend caption to explain the figure in more detail.
-    Optimization pipeline.
+    Optimization pipeline. 
   ],
 ) <pipeline>
 
@@ -54,7 +52,7 @@ in-game context (we exclude removed rows, landing height, and eroded pieces).
 // TODO: commented out for now, because I think it is more suitable in the introduction with proper citations.
 // Or maybe instead, we reference @sec-method-hsa from the introduction. (Yes, I like that)
 
-The optimization framework utilizes a Harmony Search Algorithm (HSA) to iteratively refine the agent's heuristic weights, mimicking the process of musical improvisation to find an optimal "harmony" or set of parameters.
+The optimization framework utilizes a Harmony Search Algorithm (HSA) to iteratively refine the agent's heuristic weights.
 The process begins by initializing a Harmony Memory (HM), a population of weight vectors, where each individual is evaluated using the simulation logic described previously. To account for the inherent randomness of piece sequences, the framework can be configured to average the performance metrics over multiple stochastic runs, ensuring that the resulting weight sets are robust rather than merely lucky.
 
 During each optimization iteration, the algorithm generates a new candidate solution by traversing the high-dimensional weight space through three distinct decision-making mechanisms. First, memory consideration allows the system to inherit values from the existing population, preserving successful traits. Second, pitch adjustment applies a localized perturbation, governed by a bandwidth parameter, to these inherited values, enabling a fine-tuned local search around known high-performing regions. Finally, random selection introduces entirely new values from the global bounds, maintaining diversity and preventing the search from becoming trapped in local optima.

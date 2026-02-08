@@ -103,10 +103,8 @@ This difference in performance also shows up in the speed of execution, as shown
 // you use the script everything should work great.
 
 #figure(
-  [placeholder: "Speed comparison plot goes here"],
-  // FIX: Commented because file doesn't exist
-  // image("../figures/speed_comparison.png"),
-  caption: [Execution time comparison of the two algorithms (seconds). The prefix "F" indicates that the solver has been tested with reduced settings],
+  image("../figures/speed_comparison.pdf"),
+  caption: [Execution time comparison of the two algorithms (seconds).],
 ) <fig-time>
 
 
@@ -148,16 +146,50 @@ similar performance, and that the solution landscape admits a family of good sol
   caption: [Pairwise Pearson correlation of learned weights across all optimized runs.],
 ) <fig-corr>
 
-@fig-corr shows the pairwise Pearson correlation between learned weights across all
-optimized runs. Most off-diagonal correlations are weak, indicating that the features
-capture largely independent aspects of board quality.
-// TODO: write better
-However, something something about opisite features in threes not being mapped.
-// TODO: comment on strong correlations in blocks above highest and pile height, and others.
+@fig-corr shows the pairwise Pearson correlation between learned weights across all optimized runs. Most off-diagonal correlations are weak, indicating that the features capture largely independent aspects of board quality. However, notable positive correlations exist between height-related features, specifically Blocks Above Highest and Pile Height, as well as between Holes and Connected Holes. Conversely, several features show near-zero or slightly negative correlations, such as Max Well Depth relative to Row Transitions, suggesting the optimization process successfully distinguishes between internal board structures and surface-level instability.
+
+
+The learned weight distributions demonstrate clear directional trends for specific game-state features. As shown in the weight histograms @fig-hist, features like Row Transitions and Col Transitions consistently gravitate toward negative values, while others are aggregated by category to show their mean impact.
+
+#figure(
+  image("../figures/weight_histograms.pdf", width: 80%),
+  caption: [Frequency distribution of learned weights across all optimization runs.],
+)<fig-hist>
+
+#figure(
+  image("../figures/weight_categories.pdf", width: 80%),
+  caption: [Mean weight values grouped by feature category showing relative importance.],
+)<fig-cat>
+
+The consistency of these results is validated through clustering. The k-distance plot in @fig-cluster identifies an elbow at approximately 1.35, providing a principled epsilon value for DBSCAN. Using this parameter, the stability heatmap reveals that the majority of optimization runs converge into a single primary cluster.
+
+#figure(
+  grid(
+    columns: (1fr, 1.2fr),
+    gutter: 10pt,
+    image("../figures/k_distance_elbow.pdf", width: 100%),
+    image("../figures/dbscan_stability.pdf", width: 100%),
+  ),
+  caption: [K-distance elbow plot and DBSCAN stability analysis.],
+) <fig-cluster>
 
 // TODO: reference consistency_test.pdf and consistency_error.pdf in a consistency section
-// TODO: reference weight_histograms.pdf and weight_categories.pdf in the weight analysis section
-// TODO: reference dbscan_stability.pdf, k_distance_elbow.pdf, and pca_weights.pdf in the weight analysis section
+== Consistency Analysis
+The consistency of the simulation environment was evaluated by comparing empirical results against a theoretical performance model across varying game lengths. As the game length increases, the simulation results initially follow the theoretical maximum closely but begin to plateau after a length of approximately 500.
+
+#figure(
+  image("../figures/consistency_test.pdf", width: 90%),
+  caption: [Comparison between simulation results and the theoretical maximum score across increasing game lengths.],
+) <fig-consistency-test>
+
+The divergence between the theoretical expectation and the actual agent performance is further detailed in the absolute error analysis shown in @fig-consistency-error. While the error remains near zero for shorter durations (up to a game length of 500), it grows significantly as game length exceeds 750, eventually reaching an absolute error of over 1750 at a game length of 5000.
+
+#figure(
+  image("../figures/consistency_error.pdf", width: 90%),
+  caption: [Absolute error between theoretical and simulation results as a function of game length.],
+) <fig-consistency-error>
+
+As illustrated in @fig-consistency-test, the agent's performance becomes decoupled from the theoretical maximum as the simulation progresses. This trend indicates that while the agent is highly consistent in short-term scenarios, long-term performance is capped by constraints that the theoretical model does not account for.
 
 == Parameter Sensitivity
 
@@ -165,19 +197,19 @@ To assess hyperparameter sensitivity for Harmony Search, we sweep three key para
 while holding the others fixed.
 
 #figure(
-  image("../figures/benchmark_bandwidth.png"),
+  image("../figures/benchmark_bandwidth.pdf"),
   caption: [Effect of pitch-adjustment bandwidth on agent score.],
 ) <fig-bw>
 
 
 #figure(
-  image("../figures/benchmark_iterations.png"),
+  image("../figures/benchmark_iterations.pdf"),
   caption: [Effect of maximum iterations on agent score.],
 ) <fig-iter>
 
 
 #figure(
-  image("../figures/benchmark_pitch_adj_rate.png"),
+  image("../figures/benchmark_pitch_adj_rate.pdf"),
   caption: [Effect of pitch-adjustment rate on agent score.],
 ) <fig-par>
 
