@@ -46,32 +46,38 @@
     if numcol > 2 { 2 } else { if numcol <= 0 { 1 } else { numcol } }
   }
 
+  // State: suppress indent on first paragraph after heading/figure/equation
+  let no-indent = state("no-indent", false)
+
   // Heading
   set heading(numbering: "1.")
 
-  show heading: it => block(above: els-format.above, below: els-format.below)[
-    #if it.numbering != none {
-      if it.level == 1 {
-        set par(justify: true, first-line-indent: 0em)
-        set text(font-size.normal)
-        numbering(it.numbering, ..counter(heading).at(it.location()))
-        text((" ", it.body).join())
+  show heading: it => {
+    block(above: els-format.above, below: els-format.below)[
+      #if it.numbering != none {
+        if it.level == 1 {
+          set par(justify: true, first-line-indent: 0em)
+          set text(font-size.normal)
+          numbering(it.numbering, ..counter(heading).at(it.location()))
+          text((" ", it.body).join())
 
-        // Update math counter at each new appendix
-        if isappendix.get() {
-          counter(math.equation).update(0)
-          counter(figure.where(kind: image)).update(0)
-          counter(figure.where(kind: table)).update(0)
+          // Update math counter at each new appendix
+          if isappendix.get() {
+            counter(math.equation).update(0)
+            counter(figure.where(kind: image)).update(0)
+            counter(figure.where(kind: table)).update(0)
+          }
+        } else {
+          set text(font-size.normal, weight: "regular", style: "italic")
+          numbering(it.numbering, ..counter(heading).at(it.location()))
+          text((" ", it.body).join())
         }
       } else {
-        set text(font-size.normal, weight: "regular", style: "italic")
-        numbering(it.numbering, ..counter(heading).at(it.location()))
-        text((" ", it.body).join())
+        text(size: font-size.normal, it.body)
       }
-    } else {
-      text(size: font-size.normal, it.body)
-    }
-  ]
+    ]
+    no-indent.update(true)
+  }
 
   // Equations
   show: equate.with(breakable: true, sub-numbering: true)
@@ -150,32 +156,34 @@
   // Paragraph
   let linenum = if line-numbering { "1" } else { none }
 
-  set par(first-line-indent: (amount: els-format.indent, all: true), spacing: els-format.spacing)
+  set par(first-line-indent: (amount: els-format.indent, all: true), spacing: 1em)
   set par.line(numbering: linenum, numbering-scope: "page")
 
-  // Workaround to not indent the first paragraph after an equation
-  show math.equation: it => it + [#[ #[]<eq-end>]]
+  show figure: it => {
+    it
+    no-indent.update(true)
+  }
+
+  show math.equation.where(block: true): it => {
+    it
+    no-indent.update(true)
+  }
+
   show par: it => {
     if it.first-line-indent.amount == 0pt {
-      // Prevent recursion.
-      return it
+      return it // Prevent recursion
     }
-
     context {
-      let eq-end = query(selector(<eq-end>).before(here())).at(-1, default: none)
-      if eq-end == none { return it }
-      if eq-end.location().position() != here().position() { return it }
-
-      // Paragraph start aligns with end of last equation, so recreate
-      // the paragraph, but without indent.
-      let fields = it.fields()
-      let body = fields.remove("body")
-      return par(
-        ..fields,
-        first-line-indent: 0pt,
-        body,
-      )
+      let suppress = no-indent.get()
+      if suppress {
+        let fields = it.fields()
+        let body = fields.remove("body")
+        par(..fields, first-line-indent: 0pt, body)
+      } else {
+        it
+      }
     }
+    no-indent.update(false)
   }
 
   // bibliography
