@@ -1,7 +1,7 @@
 #import "@preview/zero:0.6.1": num, ztable
 #import "@preview/booktabs:0.0.4": *
 #import "@preview/pillar:0.3.3": cols
-#import "../constants.typ": hv-weights, params, stable-weights, summary, ws
+#import "../constants.typ": fmt-weights, hv-weights, params, stable-weights, summary, ws
 
 
 = Results
@@ -123,21 +123,12 @@ This difference in performance also shows up in the speed of execution, as shown
 
 @fig-violin and @fig-mean-std[] reveal the structure of the learned weight space. The most
 consistent weights, those with low standard deviation across seeds, include
-// NOTE: this is awesome right? Confirmed
-#stable-weights.map(p => {
-  let idx = p.at(0).slice(1)
-  let s = p.at(1)
-  [$w_#idx$ (#s.feature, mean $approx$ #s.mean)]
-}).join([, ], last: [, and ]).
+#fmt-weights(stable-weights, show-mean: true).
 These features are assigned decisive, stable values regardless of the optimization seed, suggesting they
 capture the most important aspects of board quality.
 
 In contrast, several weights show high variance:
-#hv-weights.map(p => {
-  let idx = p.at(0).slice(1)
-  let s = p.at(1)
-  [$w_#idx$ (#s.feature)]
-}).join([, ], last: [, and ]) all have standard
+#fmt-weights(hv-weights) all have standard
 deviations exceeding #num(params.high_variance_threshold). This indicates that multiple weight configurations achieve
 similar performance, and that the solution landscape admits a family of good solutions rather than a single optimum.
 
@@ -172,7 +163,6 @@ The consistency of these results is validated through clustering. The k-distance
   caption: [K-distance elbow plot and DBSCAN stability analysis.],
 ) <fig-cluster>
 
-// TODO: reference consistency_test.pdf and consistency_error.pdf in a consistency section
 == Consistency Analysis
 The consistency of the simulation environment was evaluated by comparing empirical results against a theoretical performance model across varying game lengths. As the game length increases, the simulation results initially follow the theoretical maximum closely but begin to plateau after a length of approximately 500.
 

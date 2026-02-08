@@ -29,12 +29,8 @@
     "Artificial Intelligence",
     "Genetic Algorithms",
   ),
-  // TODO: Choose between formats; I like two-column 5p, but we get much fewer pages out of it
-  format: "5p", // (review, 1p, 3p, 5p, final)
+  format: "5p",
   numcol: 2,
-  // format: "3p", // (review, 1p, 3p, 5p, final)
-  // numcol: 1,
-  // line-numbering: true,
 )
 
 #set text(font: "New Computer Modern")
@@ -91,8 +87,7 @@
       [#surname \[]
     }
   }
-  // Color [LABEL] blue FIX: label is still black!
-  show regex("\\[.+?\\]"): set text(fill: blue)
+  set text(fill: rgb("#00F"))
   it
 }
 
@@ -109,4 +104,3 @@
   = Declaration of Generative AI in Scientific Writing <nonumber>
   During the preparation of this work, the authors used generative AI tools in order to improve readability and ensure a correct use of the English language. After using these tools, the authors reviewed and edited the content as needed and take full responsibility for the content of the report.
 ]
-
