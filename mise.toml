@@ -4,18 +4,18 @@ uv = "latest"
 typst = "latest"
 
 [tasks.experiments]
-description = "Run the full experiment pipeline (training + eval + sweeps)"
+description = "Run experiments (skips if config unchanged)"
 dir = "experiments"
 run = "uv run python run_experiments.py"
 
 [tasks.plots]
-description = "Generate plots and export data to report/"
+description = "Generate plots (skips if inputs unchanged)"
 depends = ["experiments"]
 dir = "experiments"
 run = "uv run python plot_results.py"
 
 [tasks.report]
-description = "Compile the Typst report"
+description = "Compile report (always runs — fast)"
 depends = ["plots"]
 run = "typst compile report/main.typ"
 

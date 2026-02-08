@@ -1,8 +1,11 @@
 import csv
+import hashlib
 import json
 import shutil
 import tomllib
 from pathlib import Path
+
+from cache import Manifest
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -674,6 +677,17 @@ def write_params_json(cfg: dict) -> None:
 
 def main() -> None:
     cfg = load_config()
+    manifest = Manifest.load()
+
+    # Check if plots are already up-to-date
+    inputs_hash = manifest.config_hash(
+        entries={k: e.config_hash for k, e in manifest.entries.items()},
+        script=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16],
+    )
+    if manifest.is_fresh("_plots_marker", inputs_hash):
+        print("Plots up-to-date, skipping.")
+        return
+
     plots_dir = Path(cfg.get("plots", {}).get("output_dir", "plots"))
     if not plots_dir.is_absolute():
         plots_dir = BASE_DIR / plots_dir
@@ -722,6 +736,9 @@ def main() -> None:
         plot_weight_histograms(opt_df, plots_dir)
         plot_pairwise_distances(opt_df, plots_dir)
         plot_pca(opt_df, plots_dir)
+
+    manifest.record("_plots_marker", inputs_hash)
+    manifest.save()
 
 
 if __name__ == "__main__":

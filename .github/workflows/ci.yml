@@ -80,46 +80,24 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            experiments:
-              - 'experiments/config.toml'
-              - 'experiments/run_experiments.py'
-              - 'src/**'
-              - 'Cargo.toml'
-              - 'Cargo.lock'
-
       - uses: jdx/mise-action@v2
 
-      - name: Check if experiments needed
-        id: check
-        run: |
-          if [ "${{ steps.filter.outputs.experiments }}" == "true" ] || [ -z "$(ls experiments/results/eval_*.csv 2>/dev/null)" ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "run=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - uses: Swatinem/rust-cache@v2
-        if: steps.check.outputs.run == 'true'
+
+      - name: Restore experiment cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            experiments/results/
+            experiments/weights/
+            experiments/.manifest.json
+          key: experiments-${{ hashFiles('experiments/config.toml', 'src/**', 'Cargo.toml', 'Cargo.lock') }}
+          restore-keys: |
+            experiments-
 
       - name: Run experiments
-        if: steps.check.outputs.run == 'true'
         working-directory: experiments
         run: uv run python run_experiments.py
-
-      - name: Commit experiment results
-        if: steps.check.outputs.run == 'true'
-        run: |
-          git add -f experiments/results/
-          git diff --cached --quiet && exit 0
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "ci: update experiment results"
-          git pull --rebase
-          git push
 
       - name: Generate plots and data exports
         working-directory: experiments

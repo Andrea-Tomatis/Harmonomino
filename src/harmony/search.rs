@@ -26,7 +26,7 @@ pub struct OptimizeConfig {
 
 impl OptimizeConfig {
     pub const DEFAULT_MEMORY_SIZE: usize = 5;
-    pub const DEFAULT_ITERATIONS: usize = 500;
+    pub const DEFAULT_ITERATIONS: usize = 100;
     pub const DEFAULT_ACCEPT_RATE: f64 = 0.95;
     pub const DEFAULT_PITCH_ADJ_RATE: f64 = 0.99;
     pub const DEFAULT_BANDWIDTH: f64 = 0.1;
