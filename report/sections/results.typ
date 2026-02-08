@@ -66,8 +66,6 @@ CES edges out HSA in both mean and median, though the distributions overlap cons
 
 == Convergence Properties
 
-// TODO: update to standard min-max-std-mean plot or whatever it's called
-// Also add baseline
 #figure(
   scope: "parent",
   image("../figures/fitness_over_iter.pdf"),

@@ -51,21 +51,22 @@ demonstrated that relatively simple feature sets can produce competent agents.
 (ACO) to Tetris using a set of feature functions, reporting results competitive with other
 methods.
 
-// TODO: maybe split into full section on ce? I think this introduction is already long enough, will see later.
-An impressive result was achieved by #cite(<Szita2006NoisyCE>, form: "prose"), who applied the
-noisy cross-entropy method to Tetris. By injecting noise into the cross-entropy update rule, they prevented
-premature convergence of the sampling distribution.
-// TODO: see
-// #cite(<Thiery2009CEImprovements>, form: "prose")
-// #cite(<Gabillon2013ADP>, form: "prose")
-// #cite(<Langenhoven2010SwarmTetris>, form: "prose")
+
+
+== Cross-Entropy Search <sec-intro-ces>
+The application of Cross-Entropy Search to Tetris has been a cornerstone of heuristic optimization research, most notably advanced by #cite(<Szita2006NoisyCE>, form: "prose"). They identified that the standard CES update rule often suffers from "variance collapse" due to the highly stochastic and "noisy" nature of the Tetris fitness landscape. Because the score for a single weight vector can vary significantly depending on the piece sequence, the sampling distribution may prematurely concentrate on "lucky" outliers—weights that performed well in a specific scenario but lack general robustness. To mitigate this, Szita et al. introduced the Noisy Cross-Entropy method, which injects additive noise into the covariance update. This technique ensures that the standard deviation never drops below a critical threshold, maintaining the exploratory pressure required to find truly global optima.
+
+This line of research was further refined by #cite(<Thiery2009CEImprovements>, form: "prose"), who demonstrated that the performance of CES is highly sensitive to the evaluation budget and the choice of the elite set. They proposed improvements in how the "noise" is scaled relative to the current variance, allowing for more stable convergence in long-horizon simulations. Complementary to these distribution-based approaches, #cite(<Langenhoven2010SwarmTetris>, form: "prose") explored the use of Particle Swarm Optimization (PSO) for the same weight-tuning problem, providing a benchmark that highlights CES's superior ability to navigate high-dimensional, non-convex reward surfaces.
+
+Furthermore, #cite(<Gabillon2013ADP>, form: "prose") positioned these optimization techniques within the broader framework of Approximate Dynamic Programming (ADP). They noted that while CES is effective at finding high-performing weights, it essentially performs a policy search in a space where the "true" value function is unknown. Their work emphasizes that the success of CES in Tetris—often achieving millions of lines cleared—stems from its ability to effectively approximate these complex decision boundaries through iterative sampling of the policy space.
 //
 // At this point we are at half of the length of the paper
 // so might want to keep this short.
 // Instead I would shorten/remove the huge sections on general explanations of HSA and CES in the methodology section. That should be reserved four our specific implementation details.
 // TODO: maybe we can copy some of the text from methodology to here and fill in the references?
+// The methodology is now much shorter for both algorithms. basically contains just the specific details of our implementation and the flow chart.
 
-== The Harmony Search Algorithm
+== The Harmony Search Algorithm <sec-intro-hsa>
 
 The Harmony Search (HS) algorithm, introduced by #cite(<Geem2001HarmonySearch>, form: "prose") in
 2001, is a metaheuristic optimization algorithm inspired by the improvisation process of

@@ -53,47 +53,35 @@ in-game context (we exclude removed rows, landing height, and eroded pieces).
 // One of the two should be heavily shortened or removed.
 // If we keep this, it still need a ton of references.
 
-The optimization framework utilizes a Harmony Search Algorithm (HSA) to iteratively refine the agent's heuristic weights.
-The process begins by initializing a Harmony Memory (HM), a population of weight vectors, where each individual is evaluated using the simulation logic described previously. To account for the inherent randomness of piece sequences, the framework can be configured to average the performance metrics over multiple stochastic runs, ensuring that the resulting weight sets are robust rather than merely lucky.
+The optimization framework employs a Harmony Search Algorithm (HSA) as described in @sec-intro-hsa. As illustrated in @hsa-flowchart, the algorithm maintains a Harmony Memory (HM) of size #params.hsa_memory_size. Each iteration generates a new candidate weight vector via three mechanisms:
 
-During each optimization iteration, the algorithm generates a new candidate solution by traversing the high-dimensional weight space through three distinct decision-making mechanisms. First, memory consideration allows the system to inherit values from the existing population, preserving successful traits. Second, pitch adjustment applies a localized perturbation, governed by a bandwidth parameter, to these inherited values, enabling a fine-tuned local search around known high-performing regions. Finally, random selection introduces entirely new values from the global bounds, maintaining diversity and preventing the search from becoming trapped in local optima.
+- *Memory Consideration*: Inheriting values from the HM with probability $r_"accept" = #params.hsa_accept_rate$.
+- *Pitch Adjustment*: Applying localized perturbations to inherited values (governed by bandwidth #params.hsa_bandwidth) with probability $r_"pa" = #params.hsa_pitch_adj_rate$.
+- *Random Selection*: Sampling new values globally to maintain diversity.
 
-The effectiveness of each generated candidate is assessed against the current population; if the newly generated candidate produces a score superior to the weakest member of the current memory, the inferior harmony is discarded and replaced. This continuous refinement loop persists until the algorithm reaches a user-defined convergence target, exhausts its iteration budget, or triggers an early-stopping condition if no significant improvement is observed over a specific duration. By managing this evolving population of strategies, the system effectively automates the discovery of complex weight configurations that maximize the agent's long-term survival and clearing efficiency.
+Candidates are evaluated by averaging performance over multiple stochastic simulation runs to ensure robustness. If a candidate outperforms the weakest individual in the HM, it is replaced. The implementation always exhausts the budget of #params.hsa_iterations iterations, as it does not employ early stopping.
 
 #figure(
   include "../figures/hsa_flowchart.typ",
-  caption: [Flowchart of the Harmony Search Algorithm (HSA). Each iteration generates a new candidate by choosing between memory consideration (with optional pitch adjustment) and random selection, then replaces the worst member if improved.],
+  caption: [Flowchart of the Harmony Search Algorithm (HSA). Each iteration generates a candidate by balancing memory exploitation and random exploration, replacing the worst member if fitness improves.],
 ) <hsa-flowchart>
-
-The complete HSA procedure is illustrated in @hsa-flowchart. HSA maintains a harmony memory (HM) of candidate weight vectors. New candidates are created
-by selecting values from HM with probability $r_"accept"$, applying pitch adjustment with
-probability $r_"pa"$, or sampling randomly otherwise. The worst candidate in HM is replaced
-if a better solution is found. Unless stated otherwise, we use: HM size #params.hsa_memory_size, up to #params.hsa_iterations iterations,
-$r_"accept" = #params.hsa_accept_rate$, $r_"pa" = #params.hsa_pitch_adj_rate$, and bandwidth #params.hsa_bandwidth.
-HSA does not employ early stopping and always exhausts its iteration budget.
 
 == Cross-Entropy Search (CES) Algorithm <sec-method-ces>
 
-The optimization framework also supports Cross-Entropy Search (CES), a distribution-based method that interprets the search for optimal weights as a problem of rare-event estimation. Unlike the discrete population management of Harmony Search, CES maintains a parameterized probability distribution—specifically a set of Gaussian distributions—over the space of possible weight configurations. The process begins with an initial set of means and a relatively broad standard deviation to ensure a wide exploratory reach across the high-dimensional parameter space.
+The framework utilizes Cross-Entropy Search (CES) presented in @sec-intro-ces to optimize weights by treating the search as a rare-event estimation problem. Unlike the population-based HSA, CES maintains a parameterized multivariate Gaussian distribution over the weight space. The iterative process follows a linear sequence of sampling, evaluation, and refinement:
 
-In each iteration, the algorithm samples a predefined number of candidate weight sets from the current normal distributions. These candidates are then evaluated through the simulation environment to determine their fitness. To ensure the robustness of the results against the stochastic nature of the game, the framework can average these performance results over multiple runs. Once all candidates in a generation are scored, the algorithm identifies a top-tier subset known as the elite samples. The means and standard deviations of the distributions are then recalculated to fit these elite performers, effectively shifting and narrowing the search toward the most promising regions of the weight space.
+1. *Sampling*: $N = #params.ces_n_samples$ candidate weight sets are sampled from the current distribution.
+2. *Evaluation*: Candidates are scored via simulation, with results averaged over multiple runs to mitigate game stochasticity.
+3. *Refinement*: The top $N_"elite" = #params.ces_n_elite$ performers are selected to recalculate the distribution's mean and variance, shifting probability mass toward high-fitness regions.
 
-To prevent the search from collapsing prematurely into a single point, a standard deviation floor is enforced, maintaining a minimum level of exploration throughout the process. The cycle of sampling, elite selection, and distribution updating repeats until a termination criterion, such as an early-stopping target or the maximum iteration limit, is satisfied. This methodology provides a mathematically principled way to refine strategies, allowing the system to converge on high-performing heuristic configurations by progressively concentrating its sampling probability around the global optimum.
+The search begins with a standard deviation of #params.ces_initial_std_dev and enforces a floor of #params.ces_std_dev_floor to prevent premature convergence. CES employs early stopping if the best fitness reaches #params.ces_early_stop_target; otherwise, it exhausts the budget of #params.ces_iterations iterations. The procedure is summarized in @ces-flowchart.
 
-CES models weights with a multivariate Gaussian. Each iteration samples $N$ candidates,
-selects the top $N_"elite"$, and updates the mean and variance from the elite set. We use
-$N=#params.ces_n_samples$, $N_"elite" = #params.ces_n_elite$, up to #params.ces_iterations iterations, an initial standard deviation of #params.ces_initial_std_dev, and a
-minimum standard deviation floor of #params.ces_std_dev_floor. CES employs early stopping:
-optimization terminates when the best fitness reaches or exceeds a target score of
-#params.ces_early_stop_target, allowing seeds that converge quickly to finish well before
-the iteration budget is exhausted.
 
-The CES procedure is illustrated in @ces-flowchart.
 
 #figure(
   scope: "parent",
   include "../figures/ces_flowchart.typ",
-  caption: [Flowchart of the Cross-Entropy Search (CES) algorithm. The fully linear structure contrasts with HSA's branching mechanisms: each iteration samples, evaluates, selects elites, and updates the distribution parameters.],
+  caption: [Flowchart of the Cross-Entropy Search (CES) algorithm. The structure emphasizes the cyclic update of distribution parameters based on elite samples.],
 ) <ces-flowchart>
 
 == Experimental Protocol
