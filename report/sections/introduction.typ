@@ -28,7 +28,6 @@ This work is guided by three research questions, which align with the broader go
 
 == Related Work
 
-// TODO: add reference(s) (maybe not Romero)
 The dominant approach to building Tetris-playing agents relies on a _state-evaluation function_:
 a linear combination of weighted board features that scores each possible placement.
 Given $n$ feature functions $f_i (s)$ mapping a board state $s$ to a real value, and corresponding weights $w_i$, the agent selects the move that maximizes

@@ -6,44 +6,39 @@ The agent evaluates board states using 16 weighted heuristic functions (pile hei
 
 Based on work by Romero et al. (Harmony Search for Tetris) and Szita & Lorincz (Noisy Cross-Entropy for Tetris).
 
-## Quick Start
+## Recommended workflow (mise)
+
+Run from the repository root:
 
 ```bash
-cargo run                     # Run HSA optimization (default)
-cargo run -- --algorithm ce   # Run Cross-Entropy Search
-cargo run -- --help           # See all options
+mise run check         # cargo check + clippy + tests
+mise run experiments   # run experiment generation
+mise run plots         # generate figures and report data exports
+mise run report        # compile report/main.pdf
+mise run presentation  # compile presentation/main.pdf
+mise run pipeline      # full pipeline (experiments -> plots -> report + presentation)
 ```
 
-## Binaries
+## Manual workflow
 
-| Binary | Description |
-|--------|-------------|
-| `cargo run` | Weight optimization (HSA or CES) |
-| `cargo run --bin tetris` | Interactive Tetris game (TUI) |
-| `cargo run --bin versus` | Human vs AI side-by-side (TUI) |
-| `cargo run --bin benchmark` | Comparison table & parameter sweeps |
+### Rust binaries (cargo)
 
-## Optimization
+Run from the repository root:
 
 ```bash
-# Harmony Search (default)
-cargo run -- --iterations 500 --sim-length 1000
-
-# Cross-Entropy Search
-cargo run -- --algorithm ce --iterations 500 --sim-length 1000
-
-# Averaged fitness (reduces noise)
-cargo run -- --averaged --averaged-runs 20
-
-# Benchmark parameter sweep
+cargo run                           # HSA optimization (default)
+cargo run -- --algorithm ce         # Cross-Entropy Search optimization
+cargo run -- --help                 # optimizer options
 cargo run --bin benchmark -- --sweep iterations --sim-length 100
+cargo run --bin tetris              # interactive TUI
+cargo run --bin versus              # human vs AI TUI
 ```
 
-Optimized weights are saved to `weights.txt` and used by the versus mode and benchmark.
+Optimized weights are written to `weights.txt` by default.
 
-## Experiments (uv)
+### Experiments (uv)
 
-The experiments pipeline lives in `experiments/` and uses `uv` for Python dependencies.
+Run from `experiments/`:
 
 ```bash
 cd experiments
@@ -52,6 +47,19 @@ uv run python run_experiments.py
 uv run python plot_results.py
 ```
 
+### Report and presentation (typst)
+
+Run from the repository root:
+
+```bash
+typst compile report/main.typ
+typst compile --root . presentation/main.typ
+```
+
 Outputs:
 - `experiments/results/*.csv`
-- `experiments/plots/*.pdf`
+- `experiments/weights/*`
+- `report/figures/*.pdf`
+- `report/data/*`
+- `report/main.pdf`
+- `presentation/main.pdf`

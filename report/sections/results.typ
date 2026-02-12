@@ -138,12 +138,10 @@ while others are aggregated by category to show their mean impact.
 ) <fig-cat>
 
 The consistency of these results is validated through clustering.
-// NOTE: What does this mean? I don't see it in the plot.
 The k-distance plot in @fig-cluster identifies an elbow at approximately 1.35, providing a principled epsilon value for DBSCAN.
 Using this parameter, the stability heatmap reveals that the majority of optimization runs converge into a single primary cluster.
 
 #figure(
-  // TODO: These plots need some work, but I'm not sure what they are.
   grid(
     align: horizon,
     columns: (1fr, 1fr),
@@ -197,11 +195,6 @@ namely pitch-adjustment bandwidth and rate and maximum iterations, while holding
   image("../figures/benchmark_pitch_adj_rate.pdf"),
   caption: [Effect of pitch-adjustment rate on agent score.],
 ) <fig-par>
-
-// NOTE: These results are pretty disapointing, hope everything went well.
-// > Yeah technically one could argue that those graphs are useless because for example if you keep all the parameters fixed and you vary only pitch adjustment rate the only think that could reasonably change is the convergence speed and not the final peformance. While having bandwidth=0.1 or =1.0 doesn't change much as all the weight will be scaled by a factor of 10 but they will still mantain their relative importance.
-// TODO: We need to think about this. Maybe we can still change the experiments to get something meaningful out of them?
-// Otherwise I would remove them to save space.
 
 @fig-bw shows that bandwidth has a moderate effect:
 too-small values restrict exploration, while excessively large values introduce disruptive perturbations.
